@@ -43,3 +43,7 @@
 
 - [x] Corrigir dropdowns transparentes: superfícies sólidas, z-index correto, borda refinada, contraste e leitura das opções
 - [x] Validar dropdowns de autenticação, filtros de dashboard, status de pedidos e perfil lateral em desktop e mobile
+
+- [x] Auditar arquitetura atual de pastas, arquivos e responsabilidades
+- [x] Identificar riscos de acoplamento, segurança, escalabilidade e manutenção
+- [x] Documentar sugestões priorizadas de melhoria arquitetural
