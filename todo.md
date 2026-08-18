@@ -47,3 +47,12 @@
 - [x] Auditar arquitetura atual de pastas, arquivos e responsabilidades
 - [x] Identificar riscos de acoplamento, segurança, escalabilidade e manutenção
 - [x] Documentar sugestões priorizadas de melhoria arquitetural
+
+- [x] Remover seeds fictícios de usuários, produtos, pedidos, comissões e notificações do estado inicial
+- [x] Remover métricas, percentuais, valores, IDs, datas, gráfico e números demonstrativos da landing e dashboards
+- [x] Ajustar interfaces para estados vazios, sem dados inventados e com mensagens de cadastro real
+- [x] Validar por busca, testes, TypeScript, build e screenshots que não restam dados demonstrativos na UI
+
+- [x] Invalidar o localStorage legado para garantir remoção dos dados demonstrativos em sessões existentes
+- [x] Adicionar verificação automatizada contra regressão de strings e valores fictícios
+- [x] Validar estados vazios das áreas autenticadas após a limpeza do storage

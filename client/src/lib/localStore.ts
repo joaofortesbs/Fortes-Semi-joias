@@ -50,65 +50,23 @@ type Store = {
   sessionUserId: string | null;
 };
 
-const STORAGE_KEY = "fernanda-fortes-saas-store-v1";
-
-const seed: Store = {
-  users: [
-    {
-      id: "gestora-demo",
-      name: "Fernanda Fortes",
-      email: "gestora@fernandafortes.com",
-      phone: "(11) 99999-0000",
-      role: "gestora",
-      password: "123456",
-      active: true,
-      commissionRate: 0,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "revendedora-demo",
-      name: "Marina Alves",
-      email: "marina@exemplo.com",
-      phone: "(11) 98888-0000",
-      role: "revendedora",
-      password: "123456",
-      active: true,
-      commissionRate: 30,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-  products: [
-    { id: "p1", name: "Colar Aurora", category: "Colares", price: 189.9, stock: 12, status: "available", accent: "#c8a86b" },
-    { id: "p2", name: "Brinco Lumière", category: "Brincos", price: 119.9, stock: 18, status: "available", accent: "#e4cfa4" },
-    { id: "p3", name: "Anel Siena", category: "Anéis", price: 149.9, stock: 7, status: "available", accent: "#b8955b" },
-    { id: "p4", name: "Pulseira Essenza", category: "Pulseiras", price: 169.9, stock: 0, status: "unavailable", accent: "#d7c2a0" },
-  ],
-  orders: [
-    { id: "PED-1048", resellerId: "revendedora-demo", items: [{ productId: "p1", quantity: 1 }], total: 189.9, commission: 56.97, status: "approved", createdAt: "2026-08-15T10:00:00.000Z" },
-    { id: "PED-1047", resellerId: "revendedora-demo", items: [{ productId: "p2", quantity: 2 }], total: 239.8, commission: 71.94, status: "delivered", createdAt: "2026-08-11T10:00:00.000Z" },
-    { id: "PED-1046", resellerId: "revendedora-demo", items: [{ productId: "p3", quantity: 1 }], total: 149.9, commission: 44.97, status: "shipped", createdAt: "2026-08-06T10:00:00.000Z" },
-  ],
-  notifications: [
-    { id: "n1", title: "Novo pedido recebido", message: "Marina Alves enviou o pedido PED-1048.", read: false, createdAt: "2026-08-15T10:15:00.000Z" },
-    { id: "n2", title: "Cadastro aprovado", message: "Seu acesso à rede Fernanda Fortes está ativo.", read: true, createdAt: "2026-08-12T08:00:00.000Z" },
-  ],
-  sessionUserId: null,
-};
+const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
+const emptyStore: Store = { users: [], products: [], orders: [], notifications: [], sessionUserId: null };
 
 function readStore(): Store {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return structuredClone(emptyStore);
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {
-    const freshSeed = structuredClone(seed);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshSeed));
-    return freshSeed;
+    const freshStore = structuredClone(emptyStore);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    return freshStore;
   }
   try {
     return JSON.parse(raw) as Store;
   } catch {
-    const freshSeed = structuredClone(seed);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshSeed));
-    return freshSeed;
+    const freshStore = structuredClone(emptyStore);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    return freshStore;
   }
 }
 
