@@ -45,3 +45,12 @@ export function buildInviteLink(input: ResellerDraft, origin = typeof window ===
 export function inviteStatusLabel(status: InviteStatus) {
   return { not_invited: "Sem convite", pending: "Convite pendente", accepted: "Aceito", expired: "Expirado" }[status];
 }
+
+export function filterResellers<T extends { name: string; city?: string; inviteStatus?: InviteStatus; active?: boolean }>(users: T[], query: string, status: "all" | InviteStatus, city: string) {
+  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+  return users.filter(user => {
+    const userStatus = user.inviteStatus ?? (user.active ? "accepted" : "pending");
+    const matchesQuery = !normalizedQuery || user.name.toLocaleLowerCase("pt-BR").includes(normalizedQuery) || (user.city ?? "").toLocaleLowerCase("pt-BR").includes(normalizedQuery);
+    return matchesQuery && (status === "all" || userStatus === status) && (city === "all" || user.city === city);
+  });
+}

@@ -69,3 +69,14 @@
 - [x] Persistir link e status ao convidar revendedora já existente sem link
 - [x] Adicionar testes de registro, convite novo e convite repetido sem duplicação
 - [x] Validar atualização visual do modal e dos cards após registrar e convidar
+
+- [x] Adicionar busca por nome e cidade na lista de Revendedoras
+- [x] Adicionar filtro por status do convite
+- [x] Adicionar filtro por cidade com opções derivadas dos dados reais
+- [x] Implementar atualização persistente de Nome e Cidade
+- [x] Implementar exclusão persistente com confirmação e sem exclusão acidental
+- [x] Adicionar testes de filtros, edição, exclusão e prevenção de duplicidade
+- [x] Validar responsividade, estados vazios e build da seção atualizada
+
+- [x] Adicionar testes automatizados para busca por nome, cidade e filtro por status
+- [x] Validar visualmente a seção Revendedoras em desktop e mobile com modal, filtros e ações

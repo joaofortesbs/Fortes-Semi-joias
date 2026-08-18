@@ -129,6 +129,30 @@ export function updateResellerInvite(userId: string, inviteLink: string) {
   return user;
 }
 
+export function updateReseller(userId: string, input: { name: string; city: string }) {
+  const store = readStore();
+  const name = input.name.trim().replace(/\s+/g, " ");
+  const city = input.city.trim().replace(/\s+/g, " ");
+  if (!name || !city) throw new Error("Nome e cidade são obrigatórios.");
+  const duplicate = store.users.find(item => item.role === "revendedora" && item.id !== userId && item.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR") && (item.city ?? "").toLocaleLowerCase("pt-BR") === city.toLocaleLowerCase("pt-BR"));
+  if (duplicate) throw new Error("Já existe uma revendedora com este nome nesta cidade.");
+  const user = store.users.find(item => item.id === userId && item.role === "revendedora");
+  if (!user) throw new Error("Revendedora não encontrada.");
+  user.name = name;
+  user.city = city;
+  writeStore(store);
+  return user;
+}
+
+export function deleteReseller(userId: string) {
+  const store = readStore();
+  const index = store.users.findIndex(item => item.id === userId && item.role === "revendedora");
+  if (index === -1) throw new Error("Revendedora não encontrada.");
+  const [removed] = store.users.splice(index, 1);
+  writeStore(store);
+  return removed;
+}
+
 export function login(identifier: string, password: string, role: Role) {
   const store = readStore();
   const user = store.users.find(item => (item.email.toLowerCase() === identifier.toLowerCase() || item.name.toLowerCase() === identifier.toLowerCase()) && item.password === password && item.role === role);
