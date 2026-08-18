@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmptyState from "@/components/EmptyState";
+import ResellersSection from "@/features/resellers/ResellersSection";
 import type { Section } from "@/components/AppShell";
 import { formatCurrency, getStore, statusLabel, updateStore, type LocalUser, type OrderStatus, type Product } from "@/lib/localStore";
 
@@ -16,7 +17,7 @@ export default function ManagerDashboard({ section }: Props) {
   const refreshStore = () => setRefresh(value => value + 1);
   if (section === "catalogo") return <Catalog products={store.products} onRefresh={refreshStore} />;
   if (section === "pedidos") return <Orders onRefresh={refreshStore} />;
-  if (section === "revendedoras") return <Resellers users={store.users.filter(item => item.role === "revendedora")} onRefresh={refreshStore} />;
+  if (section === "revendedoras") return <ResellersSection users={store.users.filter(item => item.role === "revendedora")} onRefresh={refreshStore} />;
   if (section === "comissoes") return <Commissions orders={store.orders} users={store.users} />;
   return <ManagerOverview />;
 }

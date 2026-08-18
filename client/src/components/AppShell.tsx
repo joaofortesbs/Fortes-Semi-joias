@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getStore, updateStore, type LocalUser } from "@/lib/localStore";
+import { getSectionLabel, getSectionsForRole, type SectionId, type SectionIconKey } from "@shared/sectionRegistry";
 
-export type Section = "painel" | "catalogo" | "pedidos" | "revendedoras" | "comissoes";
+export type Section = SectionId;
+const sectionIcons: Record<SectionIconKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, catalog: Package, orders: ShoppingBag, resellers: UsersRound, commissions: WalletCards };
 type Props = { user: LocalUser; section: Section; setSection: (section: Section) => void; onLogout: () => void; children: React.ReactNode };
 
 export default function AppShell({ user, section, setSection, onLogout, children }: Props) {
@@ -12,21 +14,8 @@ export default function AppShell({ user, section, setSection, onLogout, children
   const [mobileOpen, setMobileOpen] = useState(false);
   const notifications = getStore().notifications.slice(0, 5);
   const unread = notifications.filter(item => !item.read).length;
-  const managerItems = [
-    { id: "painel" as Section, label: "Painel", icon: LayoutDashboard },
-    { id: "catalogo" as Section, label: "Catálogo", icon: Package },
-    { id: "pedidos" as Section, label: "Pedidos", icon: ShoppingBag },
-    { id: "revendedoras" as Section, label: "Revendedoras", icon: UsersRound },
-    { id: "comissoes" as Section, label: "Comissões", icon: WalletCards },
-  ];
-  const resellerItems = [
-    { id: "painel" as Section, label: "Meu painel", icon: LayoutDashboard },
-    { id: "catalogo" as Section, label: "Catálogo", icon: Package },
-    { id: "pedidos" as Section, label: "Meus pedidos", icon: ShoppingBag },
-    { id: "comissoes" as Section, label: "Minhas comissões", icon: WalletCards },
-  ];
-  const items = user.role === "gestora" ? managerItems : resellerItems;
-  const currentLabel = items.find(item => item.id === section)?.label ?? "Painel";
+  const items = getSectionsForRole(user.role).map(item => ({ id: item.id, label: getSectionLabel(item.id, user.role), icon: sectionIcons[item.icon] }));
+  const currentLabel = getSectionLabel(section, user.role);
 
   return <div className="min-h-screen bg-[#f8f4ed] text-[#263b32]">
     {mobileOpen && <button className="fixed inset-0 z-40 bg-[#263b32]/30 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" />}

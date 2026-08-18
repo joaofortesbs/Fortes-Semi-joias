@@ -56,3 +56,16 @@
 - [x] Invalidar o localStorage legado para garantir remoção dos dados demonstrativos em sessões existentes
 - [x] Adicionar verificação automatizada contra regressão de strings e valores fictícios
 - [x] Validar estados vazios das áreas autenticadas após a limpeza do storage
+
+- [x] Criar registro central de seções do menu lateral com contratos de navegação e permissões
+- [x] Criar domínio compartilhado de revendedoras, convite e status futuros
+- [x] Criar arquivo único de UI da seção Revendedoras com composição isolada
+- [x] Implementar modal central com Nome, Cidade, Registrar e Convidar
+- [x] Implementar geração determinística e sem duplicação de link personalizado de convite
+- [x] Renderizar revendedoras registradas em cards responsivos com status do convite
+- [x] Adicionar testes de cadastro, validação, convite e geração idempotente de links
+- [x] Validar integração da navegação, estados vazios, acessibilidade e responsividade
+
+- [x] Persistir link e status ao convidar revendedora já existente sem link
+- [x] Adicionar testes de registro, convite novo e convite repetido sem duplicação
+- [x] Validar atualização visual do modal e dos cards após registrar e convidar

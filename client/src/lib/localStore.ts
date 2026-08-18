@@ -2,15 +2,20 @@ export type Role = "gestora" | "revendedora";
 export type ProductStatus = "available" | "unavailable";
 export type OrderStatus = "pending" | "approved" | "separating" | "shipped" | "delivered";
 
+export type ResellerInviteStatus = "not_invited" | "pending" | "accepted" | "expired";
+
 export type LocalUser = {
   id: string;
   name: string;
   email: string;
   phone: string;
+  city?: string;
   role: Role;
   password: string;
   active: boolean;
   commissionRate: number;
+  inviteStatus?: ResellerInviteStatus;
+  inviteLink?: string;
   createdAt: string;
 };
 
@@ -98,6 +103,32 @@ export function createAccount(input: Omit<LocalUser, "id" | "active" | "createdA
   writeStore(store);
   return user;
 }
+export function createReseller(input: { name: string; city: string; inviteLink?: string }) {
+  const store = readStore();
+  const normalizedName = input.name.trim().replace(/\s+/g, " ");
+  const normalizedCity = input.city.trim().replace(/\s+/g, " ");
+  if (!normalizedName || !normalizedCity) throw new Error("Nome e cidade são obrigatórios.");
+  const existing = store.users.find(user => user.role === "revendedora" && user.name.toLocaleLowerCase("pt-BR") === normalizedName.toLocaleLowerCase("pt-BR") && (user.city ?? "").toLocaleLowerCase("pt-BR") === normalizedCity.toLocaleLowerCase("pt-BR"));
+  if (existing) {
+    if (input.inviteLink) { existing.inviteLink = input.inviteLink; existing.inviteStatus = "pending"; writeStore(store); }
+    return existing;
+  }
+  const user: LocalUser = { id: crypto.randomUUID(), name: normalizedName, email: "", phone: "", city: normalizedCity, role: "revendedora", password: "", active: false, commissionRate: 0, inviteStatus: input.inviteLink ? "pending" : "not_invited", inviteLink: input.inviteLink, createdAt: new Date().toISOString() };
+  store.users.push(user);
+  writeStore(store);
+  return user;
+}
+
+export function updateResellerInvite(userId: string, inviteLink: string) {
+  const store = readStore();
+  const user = store.users.find(item => item.id === userId && item.role === "revendedora");
+  if (!user) throw new Error("Revendedora não encontrada.");
+  user.inviteLink = inviteLink;
+  user.inviteStatus = "pending";
+  writeStore(store);
+  return user;
+}
+
 export function login(identifier: string, password: string, role: Role) {
   const store = readStore();
   const user = store.users.find(item => (item.email.toLowerCase() === identifier.toLowerCase() || item.name.toLowerCase() === identifier.toLowerCase()) && item.password === password && item.role === role);
