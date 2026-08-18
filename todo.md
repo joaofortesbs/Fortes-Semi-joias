@@ -40,3 +40,6 @@
 - [x] Expandir estados vazios e coming soon nos dois dashboards
 - [x] Executar validação visual comprovada das telas internas principais em desktop e mobile
 - [x] Revisar acessibilidade e estados loading/error/empty em todas as telas internas
+
+- [x] Corrigir dropdowns transparentes: superfícies sólidas, z-index correto, borda refinada, contraste e leitura das opções
+- [x] Validar dropdowns de autenticação, filtros de dashboard, status de pedidos e perfil lateral em desktop e mobile
