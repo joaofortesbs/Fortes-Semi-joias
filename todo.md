@@ -234,3 +234,22 @@
 - [x] Adicionar teste automatizado cobrindo botão de inspeção somente com ícone e aria-label acessível
 - [x] Atualizar roteiro visual para validar o ícone vetorial do toggle e a ausência das mensagens
 - [x] Reexecutar a suíte completa e o roteiro visual atualizado antes do checkpoint
+
+## Correções de sincronização, clientes, painel e remoção de Comissões
+
+- [x] Fase 1: auditar fonte de verdade, persistência, sincronização e dependências dos módulos
+- [x] Fase 2: definir arquitetura de clientes, catálogo, pedidos e painel com benchmark de UX leve
+- [x] Fase 3: corrigir sincronização das peças do Catálogo no modal de Pedidos
+- [x] Fase 3: adicionar filtro por cliente registrado e nome do cliente nos cards de pedidos
+- [x] Fase 3: adicionar visão leve de histórico por cliente dentro de Pedidos
+- [x] Fase 4: remover seção Comissões do menu, frontend, backend, tipos e arquivos mortos
+- [x] Fase 5: conectar cards, gráfico e pedidos recentes do Painel a dados reais
+- [x] Fase 6: adicionar testes de sincronização, filtro, cliente, remoção e métricas do painel
+- [x] Fase 6: validar desktop/mobile, console, typecheck, build e salvar checkpoint final
+
+- [x] Corrigir erro de parsing existente em ManagerDashboard.tsx antes de prosseguir com as correções desta rodada
+
+- [x] Corrigir os testes de contrato visual para refletirem a implementação atual sem reduzir a cobertura de ícone, posicionamento e remoções
+
+- [x] Criar helper testável para seleção de produtos disponíveis e usar o mesmo contrato no modal de Pedidos
+- [x] Cobrir filtro por cliente, cliente no card, histórico leve e métricas reais do Painel

@@ -1,6 +1,6 @@
 export type PlatformRole = "gestora" | "revendedora";
-export type SectionId = "painel" | "catalogo" | "pedidos" | "revendedoras" | "comissoes";
-export type SectionIconKey = "dashboard" | "catalog" | "orders" | "resellers" | "commissions";
+export type SectionId = "painel" | "catalogo" | "pedidos" | "revendedoras";
+export type SectionIconKey = "dashboard" | "catalog" | "orders" | "resellers";
 
 export type SectionDefinition = {
   id: SectionId;
@@ -16,7 +16,6 @@ export const SECTION_REGISTRY: readonly SectionDefinition[] = [
   { id: "catalogo", label: "Catálogo", icon: "catalog", roles: ["gestora", "revendedora"] },
   { id: "pedidos", label: "Pedidos", managerLabel: "Pedidos", resellerLabel: "Meus pedidos", icon: "orders", roles: ["gestora", "revendedora"] },
   { id: "revendedoras", label: "Revendedoras", icon: "resellers", roles: ["gestora"] },
-  { id: "comissoes", label: "Comissões", managerLabel: "Comissões", resellerLabel: "Minhas comissões", icon: "commissions", roles: ["gestora", "revendedora"] },
 ];
 
 export function getSectionsForRole(role: PlatformRole) {

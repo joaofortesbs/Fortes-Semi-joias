@@ -20,6 +20,8 @@ export const paymentStatuses: Array<{ value: PaymentStatus; label: string }> = [
 export function parseBRLInput(value: string) { const digits = value.replace(/\D/g, ""); return digits ? Number(digits) / 100 : 0; }
 export function formatBRLInput(value: string) { const digits = value.replace(/\D/g, ""); return digits ? (Number(digits) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : ""; }
 
+export function getSelectableProducts(products: Product[]) { return products.filter(product => product.status === "available"); }
+
 export function calculateDraftTotal(products: Product[], items: Record<string, number>) {
   return Number(Object.entries(items).reduce((sum, [productId, quantity]) => sum + (products.find(product => product.id === productId)?.price ?? 0) * quantity, 0).toFixed(2));
 }
@@ -34,10 +36,11 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus) {
   const sequence: OrderStatus[] = ["pending", "approved", "paid", "separating", "shipped", "delivered"];
   return sequence.indexOf(to) >= sequence.indexOf(from);
 }
-export function filterOrders(orders: Order[], query: string, status: OrderStatus | "all", origin: OrderOrigin | "all") {
+export function filterOrders(orders: Order[], query: string, status: OrderStatus | "all", origin: OrderOrigin | "all", customerId: string = "all") {
   const normalized = query.trim().toLocaleLowerCase("pt-BR");
   return orders.filter(order => {
     const matchesQuery = !normalized || [order.id, order.customerName, ...order.items.map(item => item.productName)].filter(Boolean).some(value => value!.toLocaleLowerCase("pt-BR").includes(normalized));
-    return matchesQuery && (status === "all" || order.status === status) && (origin === "all" || order.origin === origin);
+    const matchesCustomer = customerId === "all" || order.customerId === customerId;
+    return matchesQuery && matchesCustomer && (status === "all" || order.status === status) && (origin === "all" || order.origin === origin);
   });
 }
