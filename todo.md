@@ -294,3 +294,13 @@
 - [x] Renomear Pedidos em aberto para Total de pedidos e filtrar o total pelo período selecionado
 - [x] Adicionar testes de Venda geral, seletor de catálogo, revendedoras ativas e períodos
 - [x] Validar desktop/mobile, typecheck, build, console e salvar checkpoint final
+
+## Arquitetura de persistência externa Supabase
+
+- [x] Mapear entidades, campos obrigatórios/opcionais/derivados/sensíveis e relações atuais
+- [x] Mapear estados, eventos, métricas, filtros, configurações e auditoria necessários
+- [x] Produzir Database Design Document aplicável ao Supabase com tabelas, tipos, chaves, índices e constraints
+- [x] Definir multi-tenant, RLS, papéis, escopo da gestora e proteção de dados sensíveis
+- [x] Definir estratégia de migração do localStorage/backend atual para persistência externa
+- [x] Documentar riscos, decisões, compatibilidade e critérios de aceite da integração
+- [ ] Solicitar secrets e acessos somente após concluir o DDD, sem implementar nesta etapa
