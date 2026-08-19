@@ -84,3 +84,49 @@
 - [x] Diagnosticar a origem do erro ResizeObserver loop completed with undelivered notifications
 - [x] Corrigir o ciclo de observação sem ocultar erros reais do console
 - [x] Validar console, testes, TypeScript, build e preview após a correção
+
+- [ ] Definir contrato do produto para imagem, preço, categoria, estoque, disponibilidade e custo privado
+- [ ] Definir modelo de variações simples, etiquetas e coleções
+- [ ] Implementar persistência e regras comerciais do produto
+- [ ] Substituir prompt nativo por modal central em etapas
+- [ ] Implementar upload/preview de imagem principal
+- [ ] Implementar campos comerciais e de estoque com validação
+- [x] Implementar resumo antes da confirmação e salvamento seguro
+- [ ] Integrar variações simples, etiquetas e coleções ao catálogo
+- [ ] Garantir separação entre dados públicos e custo privado
+- [ ] Adicionar testes unitários, de integração e regressão do catálogo
+- [ ] Validar acessibilidade, responsividade, estados de erro e loading
+- [ ] Criar checkpoint após a entrega do cadastro profissional de peças
+
+- [x] Evoluir o contrato de produto com imagem, preço, categoria, estoque, status e custo privado
+- [x] Adicionar descrição, variações simples, etiquetas e coleção ao produto
+- [x] Implementar domínio de validação, normalização e duplicidade de produtos
+- [x] Implementar persistência de criação e edição de produtos
+- [x] Substituir prompt nativo por modal central profissional em etapas
+- [x] Implementar upload e preview da imagem principal
+- [x] Implementar campos comerciais, estoque e disponibilidade
+- [x] Implementar resumo antes da confirmação e salvamento seguro
+- [x] Integrar cards do catálogo com os novos dados e ações
+- [x] Garantir que custo-base permaneça privado para a Gestora
+- [x] Integrar disponibilidade ao fluxo de pedidos
+- [x] Adicionar testes de domínio, persistência, visibilidade e regressão
+- [x] Validar acessibilidade, responsividade, loading, erros e build
+- [x] Salvar checkpoint da entrega end-to-end do catálogo
+
+- [x] Adicionar testes automatizados para create/update/delete de produtos, duplicidade de nome/SKU e persistência
+- [x] Implementar isolamento real do custo-base para que revendedoras não recebam esse dado no estado cliente
+- [x] Corrigir labels acessíveis do modal com htmlFor/id e navegação por teclado
+- [x] Adicionar estado explícito de salvamento/loading no cadastro e edição de produtos
+- [x] Salvar novo checkpoint após resolver os gaps do catálogo profissional
+
+- [x] Separar custo-base do objeto Product público e armazená-lo em metadados administrativos dedicados
+- [x] Completar labels acessíveis para imagem, SKU, descrição, status, variações, etiquetas e coleção
+- [x] Validar foco inicial, foco de retorno, Escape e teclado no modal do catálogo
+- [x] Criar checkpoint final depois dessas correções de privacidade e acessibilidade
+
+- [x] Adicionar rotulagem acessível explícita para o grupo de etiquetas
+- [x] Validar foco inicial, retorno ao gatilho, focus trap e navegação por teclado no modal
+- [x] Salvar checkpoint após concluir e validar os ajustes finais do catálogo
+
+- [x] Validar focus trap explícito com Tab e Shift+Tab dentro do modal de catálogo
+- [x] Salvar checkpoint final após essa validação de teclado
