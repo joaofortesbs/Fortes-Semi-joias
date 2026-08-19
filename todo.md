@@ -85,18 +85,18 @@
 - [x] Corrigir o ciclo de observação sem ocultar erros reais do console
 - [x] Validar console, testes, TypeScript, build e preview após a correção
 
-- [ ] Definir contrato do produto para imagem, preço, categoria, estoque, disponibilidade e custo privado
-- [ ] Definir modelo de variações simples, etiquetas e coleções
-- [ ] Implementar persistência e regras comerciais do produto
-- [ ] Substituir prompt nativo por modal central em etapas
-- [ ] Implementar upload/preview de imagem principal
-- [ ] Implementar campos comerciais e de estoque com validação
+- [x] Definir contrato do produto para imagem, preço, categoria, estoque, disponibilidade e custo privado
+- [x] Definir modelo de variações simples, etiquetas e coleções
+- [x] Implementar persistência e regras comerciais do produto
+- [x] Substituir prompt nativo por modal central em etapas
+- [x] Implementar upload/preview de imagem principal
+- [x] Implementar campos comerciais e de estoque com validação
 - [x] Implementar resumo antes da confirmação e salvamento seguro
-- [ ] Integrar variações simples, etiquetas e coleções ao catálogo
-- [ ] Garantir separação entre dados públicos e custo privado
-- [ ] Adicionar testes unitários, de integração e regressão do catálogo
-- [ ] Validar acessibilidade, responsividade, estados de erro e loading
-- [ ] Criar checkpoint após a entrega do cadastro profissional de peças
+- [x] Integrar variações simples, etiquetas e coleções ao catálogo
+- [x] Garantir separação entre dados públicos e custo privado
+- [x] Adicionar testes unitários, de integração e regressão do catálogo
+- [x] Validar acessibilidade, responsividade, estados de erro e loading
+- [x] Criar checkpoint após a entrega do cadastro profissional de peças
 
 - [x] Evoluir o contrato de produto com imagem, preço, categoria, estoque, status e custo privado
 - [x] Adicionar descrição, variações simples, etiquetas e coleção ao produto
@@ -130,3 +130,16 @@
 
 - [x] Validar focus trap explícito com Tab e Shift+Tab dentro do modal de catálogo
 - [x] Salvar checkpoint final após essa validação de teclado
+
+- [x] Remover custo-base do payload persistido no localStorage e manter a fonte fora do store público
+- [x] Adicionar teste de integração automatizado do fluxo completo de catálogo
+
+- [x] Criar persistência backend segregada para custo-base por produto e gestora
+- [x] Integrar o modal da Gestora ao contrato backend de custo privado
+- [x] Adicionar teste de sobrevivência do custo-base após reload/sessão e sanitização para revendedora
+- [x] Validar migração, testes, build e fluxo completo antes do checkpoint final
+
+- [x] Restringir productPrivate ao procedimento admin/gestora e cobrir acesso proibido
+- [x] Aguardar saveCost no modal, tratar erro e só fechar após confirmação do backend
+- [x] Adicionar testes de reload, persistência backend e sanitização para revendedora
+- [x] Executar fluxo autenticado real do backend e salvar checkpoint final

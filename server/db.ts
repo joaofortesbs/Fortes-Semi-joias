@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, privateProductCosts, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,19 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function upsertPrivateProductCost(ownerOpenId: string, productId: string, costBase: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available.");
+  const value = costBase.toFixed(2);
+  await db.insert(privateProductCosts).values({ ownerOpenId, productId, costBase: value }).onDuplicateKeyUpdate({ set: { costBase: value } });
+  return { productId, costBase: value };
+}
+
+export async function getPrivateProductCost(ownerOpenId: string, productId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available.");
+  const result = await db.select({ productId: privateProductCosts.productId, costBase: privateProductCosts.costBase }).from(privateProductCosts).where(eq(privateProductCosts.ownerOpenId, ownerOpenId)).limit(1000);
+  const match = result.find(item => item.productId === productId);
+  return match ? { productId: match.productId, costBase: Number(match.costBase) } : null;
+}
+

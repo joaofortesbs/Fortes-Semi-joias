@@ -60,14 +60,14 @@ export type Notification = {
 type Store = {
   users: LocalUser[];
   products: Product[];
-  privateProductMeta: Record<string, { costBase?: number }>;
   orders: Order[];
   notifications: Notification[];
   sessionUserId: string | null;
 };
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
-const emptyStore: Store = { users: [], products: [], privateProductMeta: {}, orders: [], notifications: [], sessionUserId: null };
+const emptyStore: Store = { users: [], products: [], orders: [], notifications: [], sessionUserId: null };
+let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
   if (typeof window === "undefined") return structuredClone(emptyStore);
@@ -79,14 +79,13 @@ function readStore(): Store {
   }
   try {
     const parsed = JSON.parse(raw) as Partial<Store> & { products?: Product[] };
-    const privateProductMeta = parsed.privateProductMeta ?? {};
     const products = (parsed.products ?? []).map(product => {
       const legacyCost = product.costBase;
       if (legacyCost !== undefined) privateProductMeta[product.id] = { costBase: legacyCost };
       const { costBase: _legacyCost, ...publicProduct } = product;
       return publicProduct as Product;
     });
-    const normalized = { ...emptyStore, ...parsed, products, privateProductMeta };
+    const normalized = { ...emptyStore, ...parsed, products };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     return normalized;
   } catch {
@@ -103,7 +102,7 @@ function writeStore(store: Store) {
 
 export function getStore() { return readStore(); }
 export function getProductsForRole(_role: Role) { return readStore().products.map(product => ({ ...product })); }
-export function getProductCost(productId: string) { return readStore().privateProductMeta[productId]?.costBase; }
+export function getProductCost(productId: string) { readStore(); return privateProductMeta[productId]?.costBase; }
 export function getSessionUser() {
   const store = readStore();
   return store.users.find(user => user.id === store.sessionUserId) ?? null;
@@ -197,7 +196,7 @@ export function createProduct(input: Omit<Product, "id" | "createdAt" | "updated
   const { costBase, ...publicInput } = input;
   const product: Product = { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), sku: normalizedSku || undefined, id: crypto.randomUUID(), createdAt: now, updatedAt: now };
   store.products.unshift(product);
-  if (costBase !== undefined) store.privateProductMeta[product.id] = { costBase };
+  if (costBase !== undefined) privateProductMeta[product.id] = { costBase };
   writeStore(store);
   return product;
 }
@@ -211,7 +210,7 @@ export function updateProduct(productId: string, input: Omit<Product, "id" | "cr
   if (store.products.some(item => item.id !== productId && item.name.trim().toLocaleLowerCase("pt-BR") === input.name.trim().toLocaleLowerCase("pt-BR"))) throw new Error("Já existe uma peça com este nome.");
   const { costBase, ...publicInput } = input;
   Object.assign(product, { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), sku: normalizedSku || undefined, updatedAt: new Date().toISOString() });
-  if (costBase === undefined) delete store.privateProductMeta[productId]; else store.privateProductMeta[productId] = { costBase };
+  if (costBase === undefined) delete privateProductMeta[productId]; else privateProductMeta[productId] = { costBase };
   writeStore(store);
   return product;
 }
@@ -221,7 +220,7 @@ export function deleteProduct(productId: string) {
   const index = store.products.findIndex(item => item.id === productId);
   if (index === -1) throw new Error("Peça não encontrada.");
   const [removed] = store.products.splice(index, 1);
-  delete store.privateProductMeta[productId];
+  delete privateProductMeta[productId];
   writeStore(store);
   return removed;
 }
