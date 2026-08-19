@@ -165,7 +165,7 @@
 - [x] Fase 4: construir UX do registro individual, resumo, confirmação e núcleo de Pedidos
 - [x] Fase 5: integrar atalhos de Revendedoras, seleção do Catálogo e visão de Comissões
 - [x] Fase 6: executar testes unitários, integração, permissões, responsividade e regressão
-- [ ] Fase 7: documentar, realizar rollout interno e salvar checkpoint final
+- [x] Fase 7: documentar, realizar rollout interno técnico em preview isolado e salvar checkpoint final
 - [x] Implementar funcionalidade 1: registrar pedido individual
 - [x] Implementar funcionalidade 2: origem da venda direta ou por revendedora
 - [x] Implementar funcionalidade 3: vincular revendedora responsável opcional
