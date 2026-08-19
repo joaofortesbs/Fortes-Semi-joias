@@ -80,3 +80,7 @@
 
 - [x] Adicionar testes automatizados para busca por nome, cidade e filtro por status
 - [x] Validar visualmente a seção Revendedoras em desktop e mobile com modal, filtros e ações
+
+- [x] Diagnosticar a origem do erro ResizeObserver loop completed with undelivered notifications
+- [x] Corrigir o ciclo de observação sem ocultar erros reais do console
+- [x] Validar console, testes, TypeScript, build e preview após a correção
