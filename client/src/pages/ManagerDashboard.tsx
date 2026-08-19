@@ -42,6 +42,7 @@ import {
 } from "@/lib/localStore";
 import {
   buildOrderInput,
+  buildSalesHistory,
   canTransitionOrder,
   filterOrders,
   formatBRLInput,
@@ -49,6 +50,7 @@ import {
   getOrderReseller,
   getSelectableProducts,
   getPaymentMethodLabel,
+  type SalesHistoryRange,
   parseBRLInput,
 } from "@/features/orders/orderDomain";
 
@@ -132,24 +134,27 @@ function PageIntro({
 }
 
 function ManagerOverview({ store }: { store: StoreSnapshot }) {
+  const [historyRange, setHistoryRange] = useState<SalesHistoryRange>("6m");
   const activeResellers = store.users.filter(user => user.role === "revendedora" && user.active).length;
   const openOrders = store.orders.filter(order => !["delivered", "cancelled"].includes(order.status)).length;
-  const totalSales = store.orders.filter(order => order.status !== "cancelled").reduce((sum, order) => sum + order.total, 0);
-  const productsInStock = store.products.filter(product => product.status === "available" && product.stock > 0).length;
-  const recentOrders = [...store.orders].sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()).slice(0, 4);
-  const chartPoints = buildSalesChart(store.orders);
+  const validOrders = store.orders.filter(order => order.status !== "cancelled");
+  const totalSales = validOrders.reduce((sum, order) => sum + order.total, 0);
+  const availableUnits = store.products.filter(product => product.status === "available").reduce((sum, product) => sum + Math.max(0, product.stock), 0);
+  const availableModels = store.products.filter(product => product.status === "available" && product.stock > 0).length;
+  const recentOrders = [...validOrders].sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()).slice(0, 4);
+  const chartPoints = buildSalesHistory(store.orders, historyRange);
   return (
     <>
       <PageIntro eyebrow="Visão geral" title="Sua operação" description="Acompanhe os dados reais registrados no Catálogo, Pedidos e sua rede." />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric icon={ShoppingBag} label="Vendas registradas" value={formatCurrency(totalSales)} detail={`${store.orders.length} pedido(s)`} />
+        <Metric icon={ShoppingBag} label="Vendas registradas" value={formatCurrency(totalSales)} detail={`${validOrders.length} pedido(s) válidos`} />
         <Metric icon={ShoppingBag} label="Pedidos em aberto" value={String(openOrders)} detail="Não concluídos" />
         <Metric icon={UsersRound} label="Revendedoras ativas" value={String(activeResellers)} detail="Na rede atual" />
-        <Metric icon={ShoppingBag} label="Peças disponíveis" value={String(productsInStock)} detail="No Catálogo" />
+        <Metric icon={ShoppingBag} label="Unidades disponíveis" value={String(availableUnits)} detail={`${availableModels} modelo(s) ativo(s) no Catálogo`} />
       </div>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
         <div className="rounded-2xl border border-[#dfd4c3] bg-[#fbf8f3] p-6">
-          <div className="flex items-center justify-between"><div><p className="eyebrow text-[#9d7d48]">Performance</p><h3 className="serif mt-2 text-2xl">Histórico de vendas</h3></div><span className="text-xs text-[#69756b]">Últimos 6 períodos</span></div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="eyebrow text-[#9d7d48]">Performance</p><h3 className="serif mt-2 text-2xl">Histórico de vendas</h3></div><label className="flex items-center gap-2 text-xs text-[#69756b]"><span className="sr-only">Período do histórico</span><select value={historyRange} onChange={event => setHistoryRange(event.target.value as SalesHistoryRange)} className="h-8 rounded-lg border border-[#dfd4c3] bg-white px-2 text-xs text-[#263b32]" aria-label="Período do histórico de vendas"><option value="30d">Últimos 30 dias</option><option value="6m">Últimos 6 meses</option><option value="12m">Últimos 12 meses</option></select></label></div>
           {chartPoints.some(point => point.value > 0) ? <SalesChart points={chartPoints} /> : <div className="mt-8"><EmptyState title="Ainda não há histórico" description="Registre pedidos reais para acompanhar a evolução da operação." /></div>}
         </div>
         <div className="rounded-2xl border border-[#dfd4c3] bg-[#263b32] p-6 text-[#f8f4ed]"><p className="eyebrow text-[#dfc58f]">Atenção</p><h3 className="serif mt-2 text-2xl">Pedidos recentes</h3>{recentOrders.length === 0 ? <p className="mt-6 text-sm leading-6 text-[#c2cec3]">Nenhum pedido real foi cadastrado ainda.</p> : <div className="mt-6 space-y-4">{recentOrders.map(order => <div key={order.id} className="flex items-center justify-between border-b border-white/10 pb-4"><div><p className="text-sm">{order.customerName || (order.origin === "direct" ? "Venda direta" : "Pedido da rede")}</p><p className="mt-1 text-xs text-[#b9c4ba]">{new Date(order.saleDate).toLocaleDateString("pt-BR")} · {statusLabel[order.status]}</p></div><span className="text-sm text-[#dfc58f]">{formatCurrency(order.total)}</span></div>)}</div>}</div>
@@ -162,15 +167,9 @@ function Metric({ icon: Icon, label, value, detail }: { icon: typeof ShoppingBag
   return <div className="rounded-2xl border border-[#dfd4c3] bg-[#fbf8f3] p-5"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eee4d3] text-[#896b3b]"><Icon className="h-5 w-5" /></div><p className="mt-7 text-xs uppercase tracking-[.12em] text-[#899086]">{label}</p><p className="serif mt-1 text-2xl text-[#263b32]">{value}</p><p className="mt-1 text-xs text-[#8b9187]">{detail}</p></div>;
 }
 
-function buildSalesChart(orders: Order[]) {
-  const points = Array.from({ length: 6 }, (_, index) => ({ label: `P${index + 1}`, value: 0 }));
-  orders.filter(order => order.status !== "cancelled").forEach(order => { const age = Math.max(0, Math.min(5, Math.floor((Date.now() - new Date(order.saleDate).getTime()) / (1000 * 60 * 60 * 24 * 30)))); points[5 - age].value += order.total; });
-  return points;
-}
-
 function SalesChart({ points }: { points: Array<{ label: string; value: number }> }) {
   const max = Math.max(...points.map(point => point.value), 1);
-  return <div className="mt-8 grid h-56 grid-cols-6 items-end gap-3 border-b border-[#e8dfd2] pb-5">{points.map(point => <div key={point.label} className="flex h-full flex-col items-center justify-end gap-2"><div className="w-full rounded-t-xl bg-[#c7a66b] transition-all" style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }} title={`${formatCurrency(point.value)}`} /><span className="text-[10px] text-[#9b9b91]">{point.label}</span></div>)}</div>;
+  return <div className="mt-8 grid h-56 grid-cols-6 items-end gap-3 border-b border-[#e8dfd2] pb-5">{points.map(point => <div key={point.label} className="flex h-full flex-col items-center justify-end gap-2"><div className="w-full rounded-t-xl bg-[#c7a66b] transition-all" style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }} title={`${point.label}: ${formatCurrency(point.value)} em vendas`} aria-label={`${point.label}: ${formatCurrency(point.value)} em vendas`} /><span className="text-[10px] text-[#9b9b91]">{point.label}</span></div>)}</div>;
 }
 
 function Orders({
@@ -337,7 +336,19 @@ function OrderCard({
     }
   };
   return (
-    <div className="rounded-xl border border-[#dfd4c3] bg-[#fbf8f3] px-4 py-3 shadow-[0_8px_24px_rgba(38,59,50,.04)]">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onInspect}
+      onKeyDown={event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onInspect();
+        }
+      }}
+      className="group cursor-pointer rounded-xl border border-[#dfd4c3] bg-[#fbf8f3] px-4 py-3 shadow-[0_8px_24px_rgba(38,59,50,.04)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-[#cdbd9e] hover:shadow-[0_12px_30px_rgba(38,59,50,.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c7a66b]"
+      aria-label={`Abrir detalhes do pedido ${order.id}`}
+    >
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -373,7 +384,10 @@ function OrderCard({
           <Button
             type="button"
             variant="outline"
-            onClick={onInspect}
+            onClick={event => {
+              event.stopPropagation();
+              onInspect();
+            }}
             className="h-8 w-8 rounded-lg bg-[#f8f4ed] p-0 text-[#263b32]"
             aria-label={`Inspecionar pedido ${order.id}`}
             title="Inspecionar pedido"
@@ -395,6 +409,7 @@ function OrderCard({
         {order.status !== "cancelled" && order.status !== "delivered" && (
           <select
             value={order.status}
+            onClick={event => event.stopPropagation()}
             onChange={event => updateStatus(event.target.value as OrderStatus)}
             className="h-7 rounded-md border border-[#dfd4c3] bg-white px-2 text-[11px]"
             aria-label={`Status do pedido ${order.id}`}

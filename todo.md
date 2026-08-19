@@ -253,3 +253,14 @@
 
 - [x] Criar helper testável para seleção de produtos disponíveis e usar o mesmo contrato no modal de Pedidos
 - [x] Cobrir filtro por cliente, cliente no card, histórico leve e métricas reais do Painel
+
+## Interação de Pedidos e refinamento do Painel
+
+- [x] Tornar a superfície inteira dos cards de Pedidos clicável, com hover sutil e abertura de detalhes
+- [x] Adicionar e persistir o campo explícito de data da venda no modal de Registrar venda
+- [x] Garantir pré-seleção automática da revendedora no atalho Novo pedido para pedido detalhado e venda geral
+- [x] Adicionar filtro de período personalizado ao Histórico de vendas do Painel
+- [x] Exibir tooltip com total de vendas do período/ponto ao passar o cursor no histórico
+- [x] Corrigir e validar todos os cards do Painel com dados reais e estados vazios honestos
+- [x] Adicionar testes de clique, data de venda, atalho contextual, período, tooltip e métricas
+- [x] Validar desktop/mobile, console, typecheck, build e salvar checkpoint final

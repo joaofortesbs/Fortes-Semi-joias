@@ -36,6 +36,27 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus) {
   const sequence: OrderStatus[] = ["pending", "approved", "paid", "separating", "shipped", "delivered"];
   return sequence.indexOf(to) >= sequence.indexOf(from);
 }
+export type SalesHistoryRange = "30d" | "6m" | "12m";
+export type SalesHistoryPoint = { label: string; value: number };
+export function buildSalesHistory(orders: Order[], range: SalesHistoryRange = "6m", now = new Date()): SalesHistoryPoint[] {
+  const periods = range === "30d" ? 6 : range === "12m" ? 12 : 6;
+  const unit = range === "30d" ? "day" : "month";
+  const points = Array.from({ length: periods }, (_, index) => {
+    const date = new Date(now);
+    if (unit === "day") date.setDate(now.getDate() - (periods - 1 - index) * 5);
+    else date.setMonth(now.getMonth() - (periods - 1 - index));
+    const label = unit === "day" ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}` : date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    return { label, value: 0 };
+  });
+  orders.filter(order => order.status !== "cancelled").forEach(order => {
+    const date = new Date(order.saleDate);
+    const age = unit === "day" ? Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)) : (now.getFullYear() - date.getFullYear()) * 12 + now.getMonth() - date.getMonth();
+    const index = unit === "day" ? periods - 1 - Math.floor(Math.max(0, age) / 5) : periods - 1 - Math.max(0, age);
+    if (index >= 0 && index < points.length) points[index].value += order.total;
+  });
+  return points;
+}
+
 export function filterOrders(orders: Order[], query: string, status: OrderStatus | "all", origin: OrderOrigin | "all", customerId: string = "all") {
   const normalized = query.trim().toLocaleLowerCase("pt-BR");
   return orders.filter(order => {
