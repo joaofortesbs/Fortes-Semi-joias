@@ -312,7 +312,7 @@
 - [x] Definir migração de identidade, dados, storage, backend e frontend
 - [x] Definir RLS, auditoria, secrets, governança, rollout e rollback
 - [x] Produzir plano mestre aplicável com checklist, dependências e critérios de aceite
-- [ ] Confirmar acessos e corrigir validação das credenciais Supabase antes da implementação
+- [x] Confirmar acessos e corrigir validação das credenciais Supabase antes da implementação
 
 ## Execução do schema Supabase
 
