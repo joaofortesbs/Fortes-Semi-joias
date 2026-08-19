@@ -1,0 +1,5 @@
+{
+  "project_id": "iaywdxeeztojzntjmvoa",
+  "name": "complete_performance_indexes",
+  "query": "begin; create index if not exists organization_members_profile_idx on public.organization_members(profile_id); create index if not exists organizations_owner_profile_idx on public.organizations(owner_profile_id); create index if not exists product_private_costs_product_idx on public.product_private_costs(product_id); create index if not exists product_variations_org_idx on public.product_variations(organization_id); create index if not exists reseller_invites_org_idx on public.reseller_invites(organization_id); create index if not exists user_preferences_org_idx on public.user_preferences(organization_id); drop policy if exists profiles_self on public.profiles; create policy profiles_self on public.profiles for all to authenticated using (id = (select auth.uid())) with check (id = (select auth.uid())); commit;"
+}

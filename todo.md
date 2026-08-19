@@ -313,3 +313,11 @@
 - [x] Definir RLS, auditoria, secrets, governança, rollout e rollback
 - [x] Produzir plano mestre aplicável com checklist, dependências e critérios de aceite
 - [ ] Confirmar acessos e corrigir validação das credenciais Supabase antes da implementação
+
+## Execução do schema Supabase
+
+- [x] Confirmar projeto Supabase conectado e estado atual do schema
+- [x] Aplicar tabelas, enums, relações e constraints do DDD
+- [x] Aplicar RLS, grants, funções auxiliares e views do Painel
+- [x] Validar integridade, políticas e objetos criados sem dados fictícios
+- [x] Documentar o resultado e os bloqueios restantes da migração
