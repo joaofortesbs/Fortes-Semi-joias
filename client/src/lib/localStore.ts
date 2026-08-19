@@ -30,9 +30,8 @@ export type Product = {
   accent: string;
   imageUrl?: string;
   description?: string;
-  costBase?: number;
-  sku?: string;
   variations?: ProductVariation[];
+  showInStore?: boolean;
   tags?: string[];
   collection?: string;
   createdAt?: string;
@@ -78,11 +77,13 @@ function readStore(): Store {
     return freshStore;
   }
   try {
-    const parsed = JSON.parse(raw) as Partial<Store> & { products?: Product[] };
-    const products = (parsed.products ?? []).map(product => {
+    type LegacyProduct = Product & { costBase?: number; sku?: string };
+    const parsed = JSON.parse(raw) as Partial<Store> & { products?: LegacyProduct[] };
+    const legacyProducts = (parsed.products ?? []) as LegacyProduct[];
+    const products = legacyProducts.map(product => {
       const legacyCost = product.costBase;
       if (legacyCost !== undefined) privateProductMeta[product.id] = { costBase: legacyCost };
-      const { costBase: _legacyCost, ...publicProduct } = product;
+      const { costBase: _legacyCost, sku: _legacySku, ...publicProduct } = product;
       return publicProduct as Product;
     });
     const normalized = { ...emptyStore, ...parsed, products };
@@ -190,11 +191,9 @@ export function updateStore(mutator: (store: Store) => void) { const store = rea
 export function createProduct(input: Omit<Product, "id" | "createdAt" | "updatedAt"> & { costBase?: number }) {
   const store = readStore();
   const now = new Date().toISOString();
-  const normalizedSku = input.sku?.trim().toUpperCase();
-  if (store.products.some(product => normalizedSku && product.sku?.toUpperCase() === normalizedSku)) throw new Error("Este código interno já está cadastrado.");
   if (store.products.some(product => product.name.trim().toLocaleLowerCase("pt-BR") === input.name.trim().toLocaleLowerCase("pt-BR"))) throw new Error("Já existe uma peça com este nome.");
   const { costBase, ...publicInput } = input;
-  const product: Product = { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), sku: normalizedSku || undefined, id: crypto.randomUUID(), createdAt: now, updatedAt: now };
+  const product: Product = { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), id: crypto.randomUUID(), createdAt: now, updatedAt: now };
   store.products.unshift(product);
   if (costBase !== undefined) privateProductMeta[product.id] = { costBase };
   writeStore(store);
@@ -205,11 +204,9 @@ export function updateProduct(productId: string, input: Omit<Product, "id" | "cr
   const store = readStore();
   const product = store.products.find(item => item.id === productId);
   if (!product) throw new Error("Peça não encontrada.");
-  const normalizedSku = input.sku?.trim().toUpperCase();
-  if (store.products.some(item => item.id !== productId && normalizedSku && item.sku?.toUpperCase() === normalizedSku)) throw new Error("Este código interno já está cadastrado.");
   if (store.products.some(item => item.id !== productId && item.name.trim().toLocaleLowerCase("pt-BR") === input.name.trim().toLocaleLowerCase("pt-BR"))) throw new Error("Já existe uma peça com este nome.");
   const { costBase, ...publicInput } = input;
-  Object.assign(product, { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), sku: normalizedSku || undefined, updatedAt: new Date().toISOString() });
+  Object.assign(product, { ...publicInput, name: input.name.trim().replace(/\s+/g, " "), updatedAt: new Date().toISOString() });
   if (costBase === undefined) delete privateProductMeta[productId]; else privateProductMeta[productId] = { costBase };
   writeStore(store);
   return product;

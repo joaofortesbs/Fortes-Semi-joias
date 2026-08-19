@@ -143,3 +143,15 @@
 - [x] Aguardar saveCost no modal, tratar erro e só fechar após confirmação do backend
 - [x] Adicionar testes de reload, persistência backend e sanitização para revendedora
 - [x] Executar fluxo autenticado real do backend e salvar checkpoint final
+
+- [x] Remover campo SKU do contrato e do modal de cadastro/edição
+- [x] Aplicar máscara e normalização monetária em reais para preço de venda e custo-base
+- [x] Usar estoque padrão 1 quando o campo for deixado vazio, sem alterar estoque explicitamente informado
+- [x] Adicionar toggle “Aparecer na loja” preparado para persistência futura sem alterar operações atuais
+- [x] Adicionar testes para moeda, estoque padrão, toggle e ausência de SKU
+- [x] Validar modal, responsividade, TypeScript, build e salvar checkpoint
+
+- [x] Adicionar teste explícito para ativar e persistir showInStore em create/update
+- [x] Salvar checkpoint após a validação final das quatro correções do modal
+
+- [ ] Salvar checkpoint final após as correções de SKU, moeda, estoque padrão e toggle de loja

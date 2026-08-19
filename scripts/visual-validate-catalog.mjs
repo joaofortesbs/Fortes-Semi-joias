@@ -17,20 +17,20 @@ if (!(await page.getByRole("dialog").evaluate(dialog => dialog.contains(document
 await page.getByLabel("Imagem principal").count();
 await page.locator('input[type="file"]').setInputFiles(image);
 await page.getByLabel("Nome da peça").fill("Brinco Aurora");
-await page.getByLabel("Código interno / SKU").fill("AUR-01");
 await page.getByLabel("Descrição curta").fill("Peça de validação do cadastro profissional.");
 await page.getByText("Selecione uma categoria").click();
 await page.getByRole("option", { name: "Brincos" }).click();
 await page.getByRole("button", { name: "Continuar" }).click();
 await page.getByRole("group", { name: "Etiquetas da peça" }).waitFor({ state: "visible" });
+await page.getByLabel("Aparecer na loja").check();
 const dialog = page.getByRole("dialog");
 const focusable = dialog.locator('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [role="combobox"]');
 const focusableCount = await focusable.count();
 for (let index = 0; index < focusableCount + 1; index += 1) { await page.keyboard.press("Tab"); if (!(await dialog.evaluate(element => element.contains(document.activeElement)))) throw new Error("Tab escapou do modal."); }
 for (let index = 0; index < focusableCount + 1; index += 1) { await page.keyboard.press("Shift+Tab"); if (!(await dialog.evaluate(element => element.contains(document.activeElement)))) throw new Error("Shift+Tab escapou do modal."); }
-await page.getByPlaceholder("0,00").first().fill("129,90");
-await page.getByPlaceholder("Opcional").fill("48,50");
-await page.getByPlaceholder("0", { exact: true }).fill("4");
+await page.getByPlaceholder("R$ 0,00").first().fill("12990");
+await page.getByPlaceholder("R$ 0,00").nth(1).fill("4850");
+await page.getByPlaceholder("1", { exact: true }).fill("4");
 await page.getByRole("button", { name: "Adicionar", exact: true }).click();
 await page.getByPlaceholder("Ex.: Banho").fill("Banho");
 await page.getByPlaceholder("Opção").fill("Dourado");
