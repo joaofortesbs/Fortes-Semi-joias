@@ -303,4 +303,13 @@
 - [x] Definir multi-tenant, RLS, papéis, escopo da gestora e proteção de dados sensíveis
 - [x] Definir estratégia de migração do localStorage/backend atual para persistência externa
 - [x] Documentar riscos, decisões, compatibilidade e critérios de aceite da integração
-- [ ] Solicitar secrets e acessos somente após concluir o DDD, sem implementar nesta etapa
+- [x] Solicitar secrets e acessos somente após concluir o DDD, sem implementar nesta etapa
+
+## Plano mestre Supabase Database + Supabase Auth
+
+- [x] Auditar estado atual e consolidar decisões finais de autenticação e multi-tenant
+- [x] Consolidar arquitetura alvo, DDD e vínculo entre Supabase Auth e domínio
+- [x] Definir migração de identidade, dados, storage, backend e frontend
+- [x] Definir RLS, auditoria, secrets, governança, rollout e rollback
+- [x] Produzir plano mestre aplicável com checklist, dependências e critérios de aceite
+- [ ] Confirmar acessos e corrigir validação das credenciais Supabase antes da implementação
