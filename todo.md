@@ -194,3 +194,43 @@
 - [x] Executar validação visual autenticada do fluxo de Pedidos em desktop e mobile
 
 - [x] Tornar orders.create/createPersistedOrder idempotente e cobrir repetição do mesmo pedido persistido
+
+## Simplificação do registro de pedidos e clientes
+
+- [x] Remover completamente Referência do comprovante do modal e dos novos contratos de entrada
+- [x] Remover completamente Contato livre do modal e dos novos contratos de entrada
+- [x] Remover completamente Observações internas do modal e dos novos contratos de entrada
+- [x] Remover completamente Cliente textual do modal e substituir por seleção de cliente
+- [x] Criar domínio persistente de clientes com nome, contato e dados básicos reutilizáveis
+- [x] Criar fluxo para registrar novo cliente e selecioná-lo no pedido
+- [x] Preservar compatibilidade de leitura com pedidos antigos que possuam customerName/customerContact
+- [x] Adicionar testes de clientes, remoção de campos, seleção e regressão de pedidos
+- [x] Validar visualmente o modal simplificado em desktop e mobile
+- [x] Salvar checkpoint final da simplificação do registro de pedidos
+
+- [x] Restringir o tipo de entrada de createOrder a customerId, removendo customerName/customerContact/notes/proofReference do novo contrato
+- [x] Manter customerName/customerContact apenas como snapshot legado de leitura no tipo Order
+- [x] Adicionar testes explícitos dos payloads de Gestora e Revendedora usando customerId e sem os quatro campos removidos
+
+## Refinamento do fluxo de Pedidos
+
+- [x] Transformar Pedido detalhado/Venda geral em toggle minimalista no cabeçalho com ícone vetorial, tooltip e troca rápida
+- [x] Reposicionar o campo Revendedora para a linha do catálogo quando a origem for por revendedora
+- [x] Compactar os cards de pedidos e adicionar ação de inspecionar pedido
+- [x] Adicionar detalhe e edição de pedido com preservação das regras de estoque, comissão e histórico
+- [x] Aplicar máscara BRL numérica no Valor total da Venda geral
+- [x] Adicionar testes do toggle, máscara, posicionamento, inspeção e edição
+- [x] Validar visualmente desktop/mobile e salvar checkpoint das correções de Pedidos
+
+## Refinamento final do modal e cards de Pedidos
+
+- [x] Substituir o emoji do toggle por ícone vetorial próprio compatível com o branding
+- [x] Remover completamente as mensagens auxiliares de revendedora do modal
+- [x] Alterar o botão de inspeção para exibir somente o ícone de olho com tooltip acessível
+- [x] Atualizar testes de presença/ausência e validação visual das três correções
+- [x] Salvar checkpoint final do refinamento de Pedidos
+
+- [x] Adicionar teste automatizado cobrindo ausência das mensagens auxiliares de revendedora no modal
+- [x] Adicionar teste automatizado cobrindo botão de inspeção somente com ícone e aria-label acessível
+- [x] Atualizar roteiro visual para validar o ícone vetorial do toggle e a ausência das mensagens
+- [x] Reexecutar a suíte completa e o roteiro visual atualizado antes do checkpoint

@@ -23,6 +23,8 @@ export type LocalUser = {
   createdAt: string;
 };
 
+export type Customer = { id: string; name: string; phone: string; email?: string; createdAt: string; updatedAt: string };
+
 export type ProductVariation = { name: string; options: string[] };
 export type Product = {
   id: string;
@@ -49,6 +51,7 @@ export type Order = {
   origin: OrderOrigin;
   entryType: OrderEntryType;
   resellerId?: string;
+  customerId?: string;
   customerName?: string;
   customerContact?: string;
   items: OrderItem[];
@@ -77,6 +80,7 @@ export type Notification = {
 
 type Store = {
   users: LocalUser[];
+  customers: Customer[];
   products: Product[];
   orders: Order[];
   notifications: Notification[];
@@ -84,7 +88,7 @@ type Store = {
 };
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
-const emptyStore: Store = { users: [], products: [], orders: [], notifications: [], sessionUserId: null };
+const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], sessionUserId: null };
 let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
@@ -105,7 +109,7 @@ function readStore(): Store {
       const { costBase: _legacyCost, sku: _legacySku, ...publicProduct } = product;
       return publicProduct as Product;
     });
-    const normalized = { ...emptyStore, ...parsed, products };
+    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products } as Store;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     return normalized;
   } catch {
@@ -207,7 +211,22 @@ export function login(identifier: string, password: string, role: Role) {
 export function logout() { const store = readStore(); store.sessionUserId = null; writeStore(store); }
 export function updateStore(mutator: (store: Store) => void) { const store = readStore(); mutator(store); writeStore(store); return store; }
 
-export function createOrder(input: Omit<Order, "id" | "createdAt" | "updatedAt" | "history" | "commission" | "commissionRate" | "total" | "items"> & { items: Array<{ productId: string; quantity: number }>; resellerId?: string; manualDescription?: string; manualTotal?: number }) {
+export function createCustomer(input: { name: string; phone: string; email?: string }) {
+  const store = readStore();
+  const name = input.name.trim().replace(/\s+/g, " ");
+  const phone = input.phone.trim();
+  const email = input.email?.trim().toLowerCase() || undefined;
+  if (!name || !phone) throw new Error("Nome e telefone do cliente são obrigatórios.");
+  const duplicate = store.customers.find(customer => customer.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR") && customer.phone === phone);
+  if (duplicate) return duplicate;
+  const now = new Date().toISOString();
+  const customer: Customer = { id: crypto.randomUUID(), name, phone, email, createdAt: now, updatedAt: now };
+  store.customers.unshift(customer);
+  writeStore(store);
+  return customer;
+}
+
+export function createOrder(input: Omit<Order, "id" | "createdAt" | "updatedAt" | "history" | "commission" | "commissionRate" | "total" | "items" | "customerId" | "customerName" | "customerContact" | "notes" | "proofReference"> & { items: Array<{ productId: string; quantity: number }>; customerId?: string; resellerId?: string; manualDescription?: string; manualTotal?: number }) {
   const store = readStore();
   if (input.requestId) { const existing = store.orders.find(order => order.requestId === input.requestId); if (existing) return existing; }
   if (input.origin === "reseller" && !input.resellerId) throw new Error("Selecione a revendedora responsável.");
@@ -234,7 +253,9 @@ export function createOrder(input: Omit<Order, "id" | "createdAt" | "updatedAt" 
   const commission = calculateCommission(total, commissionRate);
   const now = new Date().toISOString();
   resolvedItems.forEach(item => { const product = store.products.find(candidate => candidate.id === item.productId); if (product) product.stock -= item.quantity; });
-  const order: Order = { ...input, items: resolvedItems, total, commission, commissionRate, id: crypto.randomUUID(), createdAt: now, updatedAt: now, history: [{ status: input.status, at: now }] };
+  const selectedCustomer = input.customerId ? store.customers.find(customer => customer.id === input.customerId) : undefined;
+  if (input.customerId && !selectedCustomer) throw new Error("Cliente selecionado não foi encontrado.");
+  const order: Order = { ...input, customerId: selectedCustomer?.id, customerName: selectedCustomer?.name, customerContact: selectedCustomer?.phone, items: resolvedItems, total, commission, commissionRate, id: crypto.randomUUID(), createdAt: now, updatedAt: now, history: [{ status: input.status, at: now }] };
   store.orders.unshift(order);
   store.notifications.unshift({ id: crypto.randomUUID(), title: "Novo pedido registrado", message: input.origin === "direct" ? "Uma venda direta foi registrada." : "Um pedido de revendedora foi enviado para acompanhamento.", read: false, createdAt: now });
   writeStore(store);
@@ -259,6 +280,28 @@ export function updateOrderStatus(orderId: string, status: OrderStatus, by?: str
   const now = new Date().toISOString();
   order.status = status; order.updatedAt = now; order.history.push({ status, at: now, by });
   if (status === "paid") order.paymentStatus = "paid";
+  writeStore(store);
+  return order;
+}
+
+export function updateOrderDetails(orderId: string, input: { customerId?: string; paymentMethod: PaymentMethod; paymentStatus: PaymentStatus; saleDate: string; status: OrderStatus }, by?: string) {
+  const store = readStore();
+  const order = store.orders.find(item => item.id === orderId);
+  if (!order) throw new Error("Pedido não encontrado.");
+  if (order.status === "cancelled" && input.status !== "cancelled") throw new Error("Um pedido cancelado não pode ser reaberto.");
+  if (input.status !== order.status && !canTransitionOrderStatus(order.status, input.status)) throw new Error("Transição de status inválida para este pedido.");
+  const selectedCustomer = input.customerId ? store.customers.find(customer => customer.id === input.customerId) : undefined;
+  if (input.customerId && !selectedCustomer) throw new Error("Cliente selecionado não foi encontrado.");
+  if (input.status === "cancelled" && order.status !== "cancelled") order.items.forEach(item => { const product = store.products.find(candidate => candidate.id === item.productId); if (product) product.stock += item.quantity; });
+  const now = new Date().toISOString();
+  order.customerId = selectedCustomer?.id;
+  order.customerName = selectedCustomer?.name;
+  order.customerContact = selectedCustomer?.phone;
+  order.paymentMethod = input.paymentMethod;
+  order.paymentStatus = input.status === "paid" ? "paid" : input.paymentStatus;
+  order.saleDate = input.saleDate;
+  if (input.status !== order.status) { order.status = input.status; order.history.push({ status: input.status, at: now, by }); }
+  order.updatedAt = now;
   writeStore(store);
   return order;
 }

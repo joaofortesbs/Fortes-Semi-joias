@@ -1,4 +1,7 @@
-import type { LocalUser, Order, OrderOrigin, OrderStatus, PaymentMethod, PaymentStatus, Product } from "@/lib/localStore";
+import { type LocalUser, type Order, type OrderOrigin, type OrderStatus, type PaymentMethod, type PaymentStatus, type Product, type OrderEntryType, createOrder } from "@/lib/localStore";
+
+export type OrderCreationDraft = { requestId?: string; entryType: OrderEntryType; origin: OrderOrigin; resellerId?: string; customerId?: string; items: Array<{ productId: string; quantity: number }>; status: OrderStatus; paymentMethod: PaymentMethod; paymentStatus: PaymentStatus; saleDate: string; manualDescription?: string; manualTotal?: number };
+export function buildOrderInput(input: OrderCreationDraft): Parameters<typeof createOrder>[0] { return { ...input, customerId: input.customerId || undefined }; }
 
 export const orderStatuses: OrderStatus[] = ["pending", "approved", "paid", "separating", "shipped", "delivered", "cancelled"];
 export const paymentMethods: Array<{ value: PaymentMethod; label: string }> = [
@@ -13,6 +16,9 @@ export const paymentStatuses: Array<{ value: PaymentStatus; label: string }> = [
   { value: "paid", label: "Pago" },
   { value: "partially_paid", label: "Parcialmente pago" },
 ];
+
+export function parseBRLInput(value: string) { const digits = value.replace(/\D/g, ""); return digits ? Number(digits) / 100 : 0; }
+export function formatBRLInput(value: string) { const digits = value.replace(/\D/g, ""); return digits ? (Number(digits) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : ""; }
 
 export function calculateDraftTotal(products: Product[], items: Record<string, number>) {
   return Number(Object.entries(items).reduce((sum, [productId, quantity]) => sum + (products.find(product => product.id === productId)?.price ?? 0) * quantity, 0).toFixed(2));
