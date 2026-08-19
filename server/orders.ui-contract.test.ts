@@ -4,6 +4,9 @@ import { describe, expect, it } from "vitest";
 const managerDashboard = readFileSync(new URL("../client/src/pages/ManagerDashboard.tsx", import.meta.url), "utf8");
 const appShell = readFileSync(new URL("../client/src/components/AppShell.tsx", import.meta.url), "utf8");
 const sectionRegistry = readFileSync(new URL("../shared/sectionRegistry.ts", import.meta.url), "utf8");
+const resellersSection = readFileSync(new URL("../client/src/features/resellers/ResellersSection.tsx", import.meta.url), "utf8");
+const catalogSection = readFileSync(new URL("../client/src/features/catalog/CatalogSection.tsx", import.meta.url), "utf8");
+const localStore = readFileSync(new URL("../client/src/lib/localStore.ts", import.meta.url), "utf8");
 
 describe("orders UI contract", () => {
   it("usa um ícone vetorial próprio no toggle sem emojis de tipo de pedido", () => {
@@ -42,4 +45,7 @@ describe("orders UI contract", () => {
   it("torna a superfície do card de pedido clicável e acessível", () => { expect(managerDashboard).toContain('role="button"'); expect(managerDashboard).toContain("hover:-translate-y-px"); expect(managerDashboard).toContain("Abrir detalhes do pedido"); expect(managerDashboard).toContain("onKeyDown"); });
   it("mantém data da venda no cadastro e no payload", () => { expect(managerDashboard).toContain("Data da venda"); expect(managerDashboard).toContain('type="date"'); expect(managerDashboard).toContain("saleDate: new Date(`${saleDate}T12:00:00`).toISOString()"); });
   it("preserva a pré-seleção da revendedora no atalho contextual", () => { expect(managerDashboard).toContain('initialResellerId ? "reseller" : "direct"'); expect(managerDashboard).toContain('useState(initialResellerId ?? "")'); expect(managerDashboard).toContain('resellerId: origin === "reseller" ? resellerId : undefined'); });
-  it("expõe período e totais reais no histórico de vendas", () => { expect(managerDashboard).toContain('aria-label="Período do histórico de vendas"'); expect(managerDashboard).toContain("Últimos 30 dias"); expect(managerDashboard).toContain("em vendas"); expect(managerDashboard).toContain("availableUnits"); });
+  it("expõe período e totais reais no histórico de vendas", () => { expect(managerDashboard).toContain('aria-label="Período do histórico de vendas"'); expect(managerDashboard).toContain("Últimos 30 dias"); expect(managerDashboard).toContain("em vendas"); expect(managerDashboard).toContain("point.count"); expect(managerDashboard).toContain("availableUnits"); });
+  it("exibe miniatura derivada do primeiro produto no card de pedido", () => { expect(managerDashboard).toContain("leadProduct"); expect(managerDashboard).toContain("products={store.products}"); expect(managerDashboard).toContain("Pedido sem imagem de peça"); });
+  it("mantém a visualização de Revendedoras em grade e lista com inspeção acessível", () => { expect(resellersSection).toContain('aria-label="Visualização das revendedoras"'); expect(resellersSection).toContain('aria-label="Visualização em lista"'); expect(resellersSection).toContain("ResellerListCard"); expect(resellersSection).toContain("ResellerInspector"); });
+  it("mantém Coleções como entidade persistente e aba do Catálogo", () => { expect(catalogSection).toContain('role="tablist"'); expect(catalogSection).toContain("CollectionView"); expect(catalogSection).toContain("CollectionDialog"); expect(localStore).toContain("collections: Collection[]"); expect(localStore).toContain("createCollection"); });

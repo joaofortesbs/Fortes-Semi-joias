@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createProduct, deleteProduct, getProductCost, getProductsForRole, getStore, updateProduct } from "../client/src/lib/localStore";
+import { createCollection, createProduct, deleteCollection, deleteProduct, getProductCost, getProductsForRole, getStore, updateCollection, updateProduct } from "../client/src/lib/localStore";
 import { emptyProductDraft, formatMoneyInput, validateProductDraft } from "../client/src/features/catalog/productDomain";
 
 const storage = new Map<string, string>();
@@ -54,6 +54,15 @@ describe("productDomain", () => {
     expect(getStore().products[0]?.showInStore).toBe(true);
     updateProduct(created.id, { ...created, showInStore: false });
     expect(getStore().products[0]?.showInStore).toBe(false);
+  });
+  it("cria, atualiza e remove coleção sem duplicar peças", () => {
+    const product = createProduct({ name: "Coleção Base", imageUrl: "data:image/png;base64,abc", category: "Brincos", price: 100, stock: 1, status: "available", accent: "#c8a86b" });
+    const collection = createCollection({ name: "Verão", description: "Curadoria solar", productIds: [product.id, product.id] });
+    expect(getStore().collections[0]).toMatchObject({ name: "Verão", productIds: [product.id] });
+    updateCollection(collection.id, { name: "Verão Editado", productIds: [] });
+    expect(getStore().collections[0]?.name).toBe("Verão Editado");
+    deleteCollection(collection.id);
+    expect(getStore().collections).toHaveLength(0);
   });
   it("remove custo-base do catálogo consumido pela revendedora", () => {
     createProduct({ name: "Pulseira Essencial", imageUrl: "data:image/png;base64,abc", category: "Pulseiras", price: 100, stock: 1, status: "available", accent: "#c8a86b", costBase: 30 });

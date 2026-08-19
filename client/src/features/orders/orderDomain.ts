@@ -37,7 +37,7 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus) {
   return sequence.indexOf(to) >= sequence.indexOf(from);
 }
 export type SalesHistoryRange = "30d" | "6m" | "12m";
-export type SalesHistoryPoint = { label: string; value: number };
+export type SalesHistoryPoint = { label: string; value: number; count: number; period: string };
 export function buildSalesHistory(orders: Order[], range: SalesHistoryRange = "6m", now = new Date()): SalesHistoryPoint[] {
   const periods = range === "30d" ? 6 : range === "12m" ? 12 : 6;
   const unit = range === "30d" ? "day" : "month";
@@ -46,13 +46,14 @@ export function buildSalesHistory(orders: Order[], range: SalesHistoryRange = "6
     if (unit === "day") date.setDate(now.getDate() - (periods - 1 - index) * 5);
     else date.setMonth(now.getMonth() - (periods - 1 - index));
     const label = unit === "day" ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}` : date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-    return { label, value: 0 };
+    const period = unit === "day" ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }) : date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    return { label, value: 0, count: 0, period };
   });
   orders.filter(order => order.status !== "cancelled").forEach(order => {
     const date = new Date(order.saleDate);
     const age = unit === "day" ? Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)) : (now.getFullYear() - date.getFullYear()) * 12 + now.getMonth() - date.getMonth();
     const index = unit === "day" ? periods - 1 - Math.floor(Math.max(0, age) / 5) : periods - 1 - Math.max(0, age);
-    if (index >= 0 && index < points.length) points[index].value += order.total;
+    if (index >= 0 && index < points.length) { points[index].value += order.total; points[index].count += 1; }
   });
   return points;
 }

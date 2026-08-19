@@ -264,3 +264,22 @@
 - [x] Corrigir e validar todos os cards do Painel com dados reais e estados vazios honestos
 - [x] Adicionar testes de clique, data de venda, atalho contextual, período, tooltip e métricas
 - [x] Validar desktop/mobile, console, typecheck, build e salvar checkpoint final
+
+## Refinamento visual e organização de catálogo
+
+- [x] Garantir tooltip contextual no Histórico de vendas com total real por ponto temporal e período
+- [x] Exibir miniatura da primeira peça do pedido no extremo esquerdo dos cards de Pedidos, com fallback acessível
+- [x] Adicionar toggle de visualização grade/lista em Revendedoras com layout de lista minimalista
+- [x] Tornar cards de Revendedoras clicáveis em grade e lista, com hover, foco e inspeção acessível
+- [x] Criar domínio persistente de Coleções personalizadas e associação de produtos existentes
+- [x] Adicionar menu horizontal de abas do Catálogo com visão de peças e Coleções
+- [x] Permitir criar, inspecionar e selecionar Coleções no cadastro/edição de peças
+- [x] Adicionar testes de tooltip, miniatura, visualização de Revendedoras e Coleções
+- [x] Validar responsividade, acessibilidade, typecheck, build, console e salvar checkpoint final
+
+### Decisões de UX desta rodada
+
+- [x] Revendedoras em lista: avatar, nome, cidade, status do convite, comissão e ações compactas; Novo pedido permanece como ação primária
+- [x] Coleções: nome, descrição curta opcional, quantidade de peças e status; associação feita por IDs de produtos, sem duplicar produtos
+- [x] Miniaturas de pedidos: usar a primeira imagem disponível entre os itens; fallback neutro quando a venda geral não tiver peça vinculada
+- [x] Histórico: tooltip deve mostrar data formatada, quantidade de pedidos e valor total do ponto, sem depender apenas de cor ou hover

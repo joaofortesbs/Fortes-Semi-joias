@@ -26,6 +26,7 @@ export type LocalUser = {
 export type Customer = { id: string; name: string; phone: string; email?: string; createdAt: string; updatedAt: string };
 
 export type ProductVariation = { name: string; options: string[] };
+export type Collection = { id: string; name: string; description?: string; productIds: string[]; createdAt: string; updatedAt: string };
 export type Product = {
   id: string;
   name: string;
@@ -84,11 +85,12 @@ type Store = {
   products: Product[];
   orders: Order[];
   notifications: Notification[];
+  collections: Collection[];
   sessionUserId: string | null;
 };
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
-const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], sessionUserId: null };
+const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], sessionUserId: null };
 let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
@@ -109,7 +111,7 @@ function readStore(): Store {
       const { costBase: _legacyCost, sku: _legacySku, ...publicProduct } = product;
       return publicProduct as Product;
     });
-    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products } as Store;
+    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [] } as Store;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     return normalized;
   } catch {
@@ -335,7 +337,42 @@ export function deleteProduct(productId: string) {
   const index = store.products.findIndex(item => item.id === productId);
   if (index === -1) throw new Error("Peça não encontrada.");
   const [removed] = store.products.splice(index, 1);
+  store.collections = store.collections.map(collection => ({ ...collection, productIds: collection.productIds.filter(id => id !== productId) }));
   delete privateProductMeta[productId];
+  writeStore(store);
+  return removed;
+}
+
+export function createCollection(input: { name: string; description?: string; productIds?: string[] }) {
+  const store = readStore();
+  const name = input.name.trim().replace(/\\s+/g, " ");
+  if (!name) throw new Error("Informe o nome da coleção.");
+  if (store.collections.some(collection => collection.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))) throw new Error("Já existe uma coleção com este nome.");
+  const now = new Date().toISOString();
+  const collection: Collection = { id: crypto.randomUUID(), name, description: input.description?.trim() || undefined, productIds: Array.from(new Set(input.productIds ?? [])), createdAt: now, updatedAt: now };
+  store.collections.unshift(collection);
+  writeStore(store);
+  return collection;
+}
+
+export function updateCollection(collectionId: string, input: { name: string; description?: string; productIds?: string[] }) {
+  const store = readStore();
+  const collection = store.collections.find(item => item.id === collectionId);
+  if (!collection) throw new Error("Coleção não encontrada.");
+  const name = input.name.trim().replace(/\\s+/g, " ");
+  if (!name) throw new Error("Informe o nome da coleção.");
+  if (store.collections.some(item => item.id !== collectionId && item.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))) throw new Error("Já existe uma coleção com este nome.");
+  Object.assign(collection, { name, description: input.description?.trim() || undefined, productIds: Array.from(new Set(input.productIds ?? [])), updatedAt: new Date().toISOString() });
+  writeStore(store);
+  return collection;
+}
+
+export function deleteCollection(collectionId: string) {
+  const store = readStore();
+  const index = store.collections.findIndex(item => item.id === collectionId);
+  if (index === -1) throw new Error("Coleção não encontrada.");
+  const [removed] = store.collections.splice(index, 1);
+  store.products = store.products.map(product => product.collection === removed.id ? { ...product, collection: undefined } : product);
   writeStore(store);
   return removed;
 }

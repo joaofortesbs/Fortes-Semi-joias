@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import EmptyState from "@/components/EmptyState";
 import ResellersSection from "@/features/resellers/ResellersSection";
 import CatalogSection from "@/features/catalog/CatalogSection";
@@ -77,7 +78,7 @@ export default function ManagerDashboard({ section }: Props) {
   const refreshStore = () => setRefresh(value => value + 1);
   if (section === "catalogo")
     return (
-      <CatalogSection products={store.products} onRefresh={refreshStore} />
+      <CatalogSection products={store.products} collections={store.collections} onRefresh={refreshStore} />
     );
   if (section === "pedidos")
     return (
@@ -167,9 +168,9 @@ function Metric({ icon: Icon, label, value, detail }: { icon: typeof ShoppingBag
   return <div className="rounded-2xl border border-[#dfd4c3] bg-[#fbf8f3] p-5"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eee4d3] text-[#896b3b]"><Icon className="h-5 w-5" /></div><p className="mt-7 text-xs uppercase tracking-[.12em] text-[#899086]">{label}</p><p className="serif mt-1 text-2xl text-[#263b32]">{value}</p><p className="mt-1 text-xs text-[#8b9187]">{detail}</p></div>;
 }
 
-function SalesChart({ points }: { points: Array<{ label: string; value: number }> }) {
+function SalesChart({ points }: { points: Array<{ label: string; value: number; count: number; period: string }> }) {
   const max = Math.max(...points.map(point => point.value), 1);
-  return <div className="mt-8 grid h-56 grid-cols-6 items-end gap-3 border-b border-[#e8dfd2] pb-5">{points.map(point => <div key={point.label} className="flex h-full flex-col items-center justify-end gap-2"><div className="w-full rounded-t-xl bg-[#c7a66b] transition-all" style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }} title={`${point.label}: ${formatCurrency(point.value)} em vendas`} aria-label={`${point.label}: ${formatCurrency(point.value)} em vendas`} /><span className="text-[10px] text-[#9b9b91]">{point.label}</span></div>)}</div>;
+  return <div className="mt-8 grid h-56 grid-cols-6 items-end gap-3 border-b border-[#e8dfd2] pb-5">{points.map(point => <div key={point.label} className="flex h-full flex-col items-center justify-end gap-2"><Tooltip><TooltipTrigger asChild><div className="w-full rounded-t-xl bg-[#c7a66b] transition-all hover:bg-[#b08d53]" style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }} title={`${point.period}: ${point.count} ${point.count === 1 ? "venda" : "vendas"} · ${formatCurrency(point.value)}`} aria-label={`${point.period}: ${point.count} ${point.count === 1 ? "venda" : "vendas"}, ${formatCurrency(point.value)} em vendas`} /></TooltipTrigger><TooltipContent className="border-[#cdbd9e] bg-[#263b32] text-[#f8f4ed]"><p className="font-medium">{point.period}</p><p>{point.count} {point.count === 1 ? "venda" : "vendas"} · {formatCurrency(point.value)}</p></TooltipContent></Tooltip><span className="text-[10px] text-[#9b9b91]">{point.label}</span></div>)}</div>;
 }
 
 function Orders({
@@ -271,6 +272,7 @@ function Orders({
             <OrderCard
               key={order.id}
               order={order}
+              products={store.products}
               users={store.users}
               onInspect={() => setInspectOrder(order)}
               onRefresh={onRefresh}
@@ -313,16 +315,19 @@ function CustomerHistoryDialog({ customer, orders, onClose }: { customer?: Custo
 
 function OrderCard({
   order,
+  products,
   users,
   onInspect,
   onRefresh,
-}: {
+  }: {
   order: Order;
+  products: StoreSnapshot["products"];
   users: LocalUser[];
   onInspect: () => void;
   onRefresh: () => void;
 }) {
   const reseller = getOrderReseller(order, users);
+  const leadProduct = order.items.map(item => products.find(product => product.id === item.productId)).find(Boolean);
   const updateStatus = (next: OrderStatus) => {
     try {
       updateOrderStatus(order.id, next, "gestora");
@@ -350,7 +355,11 @@ function OrderCard({
       aria-label={`Abrir detalhes do pedido ${order.id}`}
     >
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#dfd4c3] bg-[#eee4d3] text-[#9d7d48]" aria-label={leadProduct ? `Imagem de ${leadProduct.name}` : "Pedido sem imagem de peça"}>
+            {leadProduct?.imageUrl ? <img src={leadProduct.imageUrl} alt="" className="h-full w-full object-cover" /> : <ShoppingBag className="h-5 w-5" aria-hidden="true" />}
+          </div>
+          <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-medium">
               Pedido {order.id.slice(0, 8)}
@@ -373,6 +382,7 @@ function OrderCard({
             {order.customerName ? ` · ${order.customerName}` : ""} ·{" "}
             {new Date(order.saleDate).toLocaleDateString("pt-BR")}
           </p>
+        </div>
         </div>
         <div className="flex items-center justify-between gap-4 md:justify-end">
           <div className="text-right">
