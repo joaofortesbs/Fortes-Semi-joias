@@ -36,11 +36,28 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus) {
   const sequence: OrderStatus[] = ["pending", "approved", "paid", "separating", "shipped", "delivered"];
   return sequence.indexOf(to) >= sequence.indexOf(from);
 }
-export type SalesHistoryRange = "30d" | "6m" | "12m";
+export type SalesHistoryRange = "1m" | "6m" | "12m" | "custom" | "all";
+export type SalesHistoryWindow = { range: SalesHistoryRange; from?: string; to?: string };
 export type SalesHistoryPoint = { label: string; value: number; count: number; period: string };
-export function buildSalesHistory(orders: Order[], range: SalesHistoryRange = "6m", now = new Date()): SalesHistoryPoint[] {
-  const periods = range === "30d" ? 6 : range === "12m" ? 12 : 6;
-  const unit = range === "30d" ? "day" : "month";
+export function getSalesHistoryBounds(window: SalesHistoryWindow, now = new Date()) {
+  if (window.range === "custom") return { from: window.from ? new Date(`${window.from}T00:00:00`) : undefined, to: window.to ? new Date(`${window.to}T23:59:59.999`) : undefined };
+  if (window.range === "all") return { from: undefined, to: now };
+  const from = new Date(now);
+  from.setMonth(from.getMonth() - (window.range === "1m" ? 1 : window.range === "12m" ? 12 : 6));
+  return { from, to: now };
+}
+export function filterOrdersBySalesWindow(orders: Order[], window: SalesHistoryWindow, now = new Date()) {
+  const bounds = getSalesHistoryBounds(window, now);
+  return orders.filter(order => {
+    if (order.status === "cancelled") return false;
+    const date = new Date(order.saleDate);
+    return (!bounds.from || date >= bounds.from) && (!bounds.to || date <= bounds.to);
+  });
+}
+export function buildSalesHistory(orders: Order[], window: SalesHistoryWindow = { range: "6m" }, now = new Date()): SalesHistoryPoint[] {
+  const filtered = filterOrdersBySalesWindow(orders, window, now);
+  const periods = window.range === "custom" || window.range === "all" ? 6 : window.range === "1m" ? 6 : window.range === "12m" ? 12 : 6;
+  const unit = window.range === "1m" ? "day" : "month";
   const points = Array.from({ length: periods }, (_, index) => {
     const date = new Date(now);
     if (unit === "day") date.setDate(now.getDate() - (periods - 1 - index) * 5);
@@ -49,10 +66,11 @@ export function buildSalesHistory(orders: Order[], range: SalesHistoryRange = "6
     const period = unit === "day" ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }) : date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     return { label, value: 0, count: 0, period };
   });
-  orders.filter(order => order.status !== "cancelled").forEach(order => {
+  filtered.forEach(order => {
     const date = new Date(order.saleDate);
     const age = unit === "day" ? Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)) : (now.getFullYear() - date.getFullYear()) * 12 + now.getMonth() - date.getMonth();
-    const index = unit === "day" ? periods - 1 - Math.floor(Math.max(0, age) / 5) : periods - 1 - Math.max(0, age);
+    const rawIndex = unit === "day" ? periods - 1 - Math.floor(Math.max(0, age) / 5) : periods - 1 - Math.max(0, age);
+    const index = window.range === "all" ? Math.min(periods - 1, Math.max(0, rawIndex)) : rawIndex;
     if (index >= 0 && index < points.length) { points[index].value += order.total; points[index].count += 1; }
   });
   return points;

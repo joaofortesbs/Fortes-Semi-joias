@@ -52,6 +52,8 @@ import {
   getSelectableProducts,
   getPaymentMethodLabel,
   type SalesHistoryRange,
+  type SalesHistoryWindow,
+  filterOrdersBySalesWindow,
   parseBRLInput,
 } from "@/features/orders/orderDomain";
 
@@ -135,27 +137,30 @@ function PageIntro({
 }
 
 function ManagerOverview({ store }: { store: StoreSnapshot }) {
-  const [historyRange, setHistoryRange] = useState<SalesHistoryRange>("6m");
-  const activeResellers = store.users.filter(user => user.role === "revendedora" && user.active).length;
-  const openOrders = store.orders.filter(order => !["delivered", "cancelled"].includes(order.status)).length;
-  const validOrders = store.orders.filter(order => order.status !== "cancelled");
+  const [historyWindow, setHistoryWindow] = useState<SalesHistoryWindow>({ range: "6m" });
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const activeResellers = store.users.filter(user => user.role === "revendedora" && (user.active || user.inviteStatus === "not_invited")).length;
+  const filteredOrders = filterOrdersBySalesWindow(store.orders, historyWindow);
+  const validOrders = filteredOrders;
   const totalSales = validOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalOrders = validOrders.length;
   const availableUnits = store.products.filter(product => product.status === "available").reduce((sum, product) => sum + Math.max(0, product.stock), 0);
   const availableModels = store.products.filter(product => product.status === "available" && product.stock > 0).length;
   const recentOrders = [...validOrders].sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()).slice(0, 4);
-  const chartPoints = buildSalesHistory(store.orders, historyRange);
+  const chartPoints = buildSalesHistory(store.orders, historyWindow);
   return (
     <>
       <PageIntro eyebrow="Visão geral" title="Sua operação" description="Acompanhe os dados reais registrados no Catálogo, Pedidos e sua rede." />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric icon={ShoppingBag} label="Vendas registradas" value={formatCurrency(totalSales)} detail={`${validOrders.length} pedido(s) válidos`} />
-        <Metric icon={ShoppingBag} label="Pedidos em aberto" value={String(openOrders)} detail="Não concluídos" />
+        <Metric icon={ShoppingBag} label="Vendas registradas" value={formatCurrency(totalSales)} detail={`${validOrders.length} pedido(s) no período`} />
+        <Metric icon={ShoppingBag} label="Total de pedidos" value={String(totalOrders)} detail="Pedidos válidos no período" />
         <Metric icon={UsersRound} label="Revendedoras ativas" value={String(activeResellers)} detail="Na rede atual" />
         <Metric icon={ShoppingBag} label="Unidades disponíveis" value={String(availableUnits)} detail={`${availableModels} modelo(s) ativo(s) no Catálogo`} />
       </div>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
         <div className="rounded-2xl border border-[#dfd4c3] bg-[#fbf8f3] p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="eyebrow text-[#9d7d48]">Performance</p><h3 className="serif mt-2 text-2xl">Histórico de vendas</h3></div><label className="flex items-center gap-2 text-xs text-[#69756b]"><span className="sr-only">Período do histórico</span><select value={historyRange} onChange={event => setHistoryRange(event.target.value as SalesHistoryRange)} className="h-8 rounded-lg border border-[#dfd4c3] bg-white px-2 text-xs text-[#263b32]" aria-label="Período do histórico de vendas"><option value="30d">Últimos 30 dias</option><option value="6m">Últimos 6 meses</option><option value="12m">Últimos 12 meses</option></select></label></div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="eyebrow text-[#9d7d48]">Performance</p><h3 className="serif mt-2 text-2xl">Histórico de vendas</h3></div><div className="flex flex-wrap items-center gap-2"><label className="flex items-center gap-2 text-xs text-[#69756b]"><span className="sr-only">Período do histórico</span><select value={historyWindow.range} onChange={event => { const range = event.target.value as SalesHistoryRange; setHistoryWindow(range === "custom" ? { range, from: customFrom, to: customTo } : { range }); }} className="h-8 rounded-lg border border-[#dfd4c3] bg-white px-2 text-xs text-[#263b32]" aria-label="Período do histórico de vendas"><option value="1m">Último mês</option><option value="6m">Últimos 6 meses</option><option value="12m">Último ano</option><option value="all">Todo o período</option><option value="custom">Período personalizado</option></select></label>{historyWindow.range === "custom" && <div className="flex items-center gap-1"><input type="date" value={customFrom} onChange={event => { setCustomFrom(event.target.value); setHistoryWindow({ range: "custom", from: event.target.value, to: customTo }); }} aria-label="Data inicial personalizada" className="h-8 rounded-lg border border-[#dfd4c3] bg-white px-2 text-xs" /><span className="text-xs text-[#9b9b91]">até</span><input type="date" value={customTo} onChange={event => { setCustomTo(event.target.value); setHistoryWindow({ range: "custom", from: customFrom, to: event.target.value }); }} aria-label="Data final personalizada" className="h-8 rounded-lg border border-[#dfd4c3] bg-white px-2 text-xs" /></div>}</div></div>
           {chartPoints.some(point => point.value > 0) ? <SalesChart points={chartPoints} /> : <div className="mt-8"><EmptyState title="Ainda não há histórico" description="Registre pedidos reais para acompanhar a evolução da operação." /></div>}
         </div>
         <div className="rounded-2xl border border-[#dfd4c3] bg-[#263b32] p-6 text-[#f8f4ed]"><p className="eyebrow text-[#dfc58f]">Atenção</p><h3 className="serif mt-2 text-2xl">Pedidos recentes</h3>{recentOrders.length === 0 ? <p className="mt-6 text-sm leading-6 text-[#c2cec3]">Nenhum pedido real foi cadastrado ainda.</p> : <div className="mt-6 space-y-4">{recentOrders.map(order => <div key={order.id} className="flex items-center justify-between border-b border-white/10 pb-4"><div><p className="text-sm">{order.customerName || (order.origin === "direct" ? "Venda direta" : "Pedido da rede")}</p><p className="mt-1 text-xs text-[#b9c4ba]">{new Date(order.saleDate).toLocaleDateString("pt-BR")} · {statusLabel[order.status]}</p></div><span className="text-sm text-[#dfc58f]">{formatCurrency(order.total)}</span></div>)}</div>}</div>
@@ -751,6 +756,7 @@ function CreateOrderModal({
   const [manualDescription, setManualDescription] = useState("");
   const [manualTotal, setManualTotal] = useState("");
   const [items, setItems] = useState<Record<string, number>>({});
+  const [catalogQuery, setCatalogQuery] = useState("");
   const [customers, setCustomers] = useState<Customer[]>(store.customers);
   const [customerId, setCustomerId] = useState("");
   const [newCustomerOpen, setNewCustomerOpen] = useState(false);
@@ -765,6 +771,7 @@ function CreateOrderModal({
   const [error, setError] = useState("");
   const [customerError, setCustomerError] = useState("");
   const availableProducts = getSelectableProducts(store.products);
+  const filteredProducts = availableProducts.filter(product => `${product.name} ${product.category}`.toLocaleLowerCase("pt-BR").includes(catalogQuery.toLocaleLowerCase("pt-BR")));
   const selectedItems = Object.entries(items).filter(
     ([, quantity]) => quantity > 0
   );
@@ -909,29 +916,14 @@ function CreateOrderModal({
             <div className="grid gap-3 rounded-xl border border-[#e5dbcc] bg-white p-4 md:grid-cols-2">
               <label className="text-sm font-medium">
                 Descrição da venda
-                <Input
-                  className="mt-2"
-                  value={manualDescription}
-                  onChange={event => setManualDescription(event.target.value)}
-                  placeholder="Ex.: venda de peças não discriminadas"
-                />
+                <Input className="mt-2" value={manualDescription} onChange={event => setManualDescription(event.target.value)} placeholder="Ex.: venda de peças não discriminadas" />
               </label>
               <label className="text-sm font-medium">
                 Valor total
-                <Input
-                  className="mt-2"
-                  inputMode="numeric"
-                  value={manualTotal}
-                  onChange={event =>
-                    setManualTotal(formatBRLInput(event.target.value))
-                  }
-                  placeholder="R$ 0,00"
-                />
+                <Input className="mt-2" inputMode="numeric" value={manualTotal} onChange={event => setManualTotal(formatBRLInput(event.target.value))} placeholder="R$ 0,00" />
               </label>
-              <p className="text-xs text-[#69756b] md:col-span-2">
-                O registro geral não baixa estoque de peças individuais; use-o
-                apenas para uma entrada agregada.
-              </p>
+              {origin === "reseller" && <label className="text-sm font-medium md:col-span-2">Revendedora<select value={resellerId} onChange={event => setResellerId(event.target.value)} aria-label="Selecionar revendedora na venda geral" className="mt-2 h-10 w-full rounded-md border border-[#dfd4c3] bg-white px-3 text-sm"><option value="">Selecione uma revendedora</option>{store.users.filter(user => user.role === "revendedora").map(user => <option key={user.id} value={user.id}>{user.name} · {user.city}</option>)}</select></label>}
+              <p className="text-xs text-[#69756b] md:col-span-2">O registro geral não baixa estoque de peças individuais; use-o apenas para uma entrada agregada.</p>
             </div>
           ) : (
             <div
@@ -945,60 +937,16 @@ function CreateOrderModal({
                 <p className="text-sm font-medium">Peças do catálogo</p>
                 <div className="mt-2 grid gap-2">
                   {availableProducts.length === 0 ? (
-                    <p className="rounded-xl bg-[#eee4d3] p-4 text-sm text-[#69756b]">
-                      Cadastre peças no Catálogo antes de registrar uma venda.
-                    </p>
+                    <p className="rounded-xl bg-[#eee4d3] p-4 text-sm text-[#69756b]">Cadastre peças no Catálogo antes de registrar uma venda.</p>
                   ) : (
-                    availableProducts.map(product => (
-                      <div
-                        key={product.id}
-                        className="flex items-center justify-between rounded-xl border border-[#e5dbcc] bg-white p-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{product.name}</p>
-                          <p className="text-xs text-[#69756b]">
-                            {formatCurrency(product.price)} · {product.stock > 0 ? `${product.stock} em estoque` : "Sem estoque"}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            className="h-8 w-8 bg-[#f8f4ed] p-0"
-                            onClick={() =>
-                              setItems(current => ({
-                                ...current,
-                                [product.id]: Math.max(
-                                  0,
-                                  (current[product.id] ?? 0) - 1
-                                ),
-                              }))
-                            }
-                            disabled={!items[product.id]}
-                          >
-                            −
-                          </Button>
-                          <span className="w-5 text-center text-sm">
-                            {items[product.id] ?? 0}
-                          </span>
-                          <Button
-                            variant="outline"
-                            className="h-8 w-8 bg-[#f8f4ed] p-0"
-                            onClick={() =>
-                              setItems(current => ({
-                                ...current,
-                                [product.id]: Math.min(
-                                  product.stock,
-                                  (current[product.id] ?? 0) + 1
-                                ),
-                              }))
-                            }
-                            disabled={product.stock === 0 || (items[product.id] ?? 0) >= product.stock}
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-                    ))
+                    <div className="rounded-xl border border-[#e5dbcc] bg-white p-3">
+                      <Input value={catalogQuery} onChange={event => setCatalogQuery(event.target.value)} placeholder="Pesquisar peça por nome ou categoria" aria-label="Pesquisar peças do catálogo" className="mb-3" />
+                      <select value={selectedItems[0]?.[0] ?? ""} onChange={event => setItems(event.target.value ? { [event.target.value]: Math.max(1, items[event.target.value] ?? 0) } : {})} aria-label="Selecionar peça do catálogo" className="h-10 w-full rounded-md border border-[#dfd4c3] bg-white px-3 text-sm">
+                        <option value="">Selecione uma peça</option>
+                        {filteredProducts.map(product => <option key={product.id} value={product.id} disabled={product.stock === 0}>{product.name} · {formatCurrency(product.price)} · {product.stock > 0 ? `${product.stock} em estoque` : "Sem estoque"}</option>)}
+                      </select>
+                      {selectedItems[0] && (() => { const [productId, quantity] = selectedItems[0]; const product = store.products.find(item => item.id === productId); if (!product) return null; return <div className="mt-3 flex items-center justify-between rounded-lg bg-[#f8f4ed] px-3 py-2"><div><p className="text-sm font-medium">{product.name}</p><p className="text-xs text-[#69756b]">{formatCurrency(product.price)} · {product.stock} em estoque</p></div><div className="flex items-center gap-2"><Button variant="outline" className="h-8 w-8 bg-white p-0" onClick={() => setItems(current => ({ ...current, [product.id]: Math.max(0, quantity - 1) }))}>−</Button><span className="w-5 text-center text-sm">{quantity}</span><Button variant="outline" className="h-8 w-8 bg-white p-0" onClick={() => setItems(current => ({ ...current, [product.id]: Math.min(product.stock, quantity + 1) }))} disabled={quantity >= product.stock}>+</Button></div></div>; })()}
+                    </div>
                   )}
                 </div>
               </div>

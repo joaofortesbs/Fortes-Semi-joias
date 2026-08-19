@@ -283,3 +283,14 @@
 - [x] Coleções: nome, descrição curta opcional, quantidade de peças e status; associação feita por IDs de produtos, sem duplicar produtos
 - [x] Miniaturas de pedidos: usar a primeira imagem disponível entre os itens; fallback neutro quando a venda geral não tiver peça vinculada
 - [x] Histórico: tooltip deve mostrar data formatada, quantidade de pedidos e valor total do ponto, sem depender apenas de cor ou hover
+
+## Correções de Venda geral e Painel temporal
+
+- [x] Exibir e validar seleção de revendedora também na Venda geral quando a origem for por revendedora
+- [x] Substituir blocos individuais de catálogo no pedido por seletor único pesquisável com seleção e contabilização
+- [x] Contabilizar registros diretos sem convite como revendedoras ativas no Painel
+- [x] Unificar filtro temporal do Painel entre Histórico, Vendas registradas e Total de pedidos
+- [x] Adicionar períodos 1 mês, 6 meses, 1 ano, personalizado e todo o tempo com calendário
+- [x] Renomear Pedidos em aberto para Total de pedidos e filtrar o total pelo período selecionado
+- [x] Adicionar testes de Venda geral, seletor de catálogo, revendedoras ativas e períodos
+- [x] Validar desktop/mobile, typecheck, build, console e salvar checkpoint final
