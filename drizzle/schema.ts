@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { decimal, int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -38,3 +38,20 @@ export const privateProductCosts = mysqlTable("private_product_costs", {
 
 export type PrivateProductCost = typeof privateProductCosts.$inferSelect;
 export type InsertPrivateProductCost = typeof privateProductCosts.$inferInsert;
+
+export const orders = mysqlTable("orders", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull().references(() => users.openId),
+  resellerId: varchar("resellerId", { length: 64 }),
+  origin: mysqlEnum("origin", ["direct", "reseller"]).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  commission: decimal("commission", { precision: 12, scale: 2 }).notNull(),
+  payload: json("payload").notNull(),
+  saleDate: timestamp("saleDate").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OrderRecord = typeof orders.$inferSelect;
+export type InsertOrderRecord = typeof orders.$inferInsert;

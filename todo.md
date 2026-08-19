@@ -154,4 +154,43 @@
 - [x] Adicionar teste explícito para ativar e persistir showInStore em create/update
 - [x] Salvar checkpoint após a validação final das quatro correções do modal
 
-- [ ] Salvar checkpoint final após as correções de SKU, moeda, estoque padrão e toggle de loja
+- [x] Salvar checkpoint final após as correções de SKU, moeda, estoque padrão e toggle de loja
+
+## Execução end-to-end do fluxo de vendas/pedidos
+
+- [x] Fase 0: concluir auditoria técnica, congelar escopo e definir critérios de aceite do fluxo de pedidos
+- [x] Fase 1: definir contrato de pedido, origem, itens, cliente, pagamento, status, comissão e histórico
+- [x] Fase 2: adaptar persistência, preparar migração e implementar contratos backend protegidos
+- [x] Fase 3: centralizar regras de estoque, pagamento, status, comissão e idempotência
+- [x] Fase 4: construir UX do registro individual, resumo, confirmação e núcleo de Pedidos
+- [x] Fase 5: integrar atalhos de Revendedoras, seleção do Catálogo e visão de Comissões
+- [x] Fase 6: executar testes unitários, integração, permissões, responsividade e regressão
+- [ ] Fase 7: documentar, realizar rollout interno e salvar checkpoint final
+- [x] Implementar funcionalidade 1: registrar pedido individual
+- [x] Implementar funcionalidade 2: origem da venda direta ou por revendedora
+- [x] Implementar funcionalidade 3: vincular revendedora responsável opcional
+- [x] Implementar funcionalidade 4: selecionar peças do catálogo
+- [x] Implementar funcionalidade 5: quantidade por item
+- [x] Implementar funcionalidade 6: subtotal e total automáticos
+- [x] Implementar funcionalidade 7: data da venda
+- [x] Implementar funcionalidade 8: status do pedido e transições válidas
+- [x] Implementar funcionalidade 9: forma e situação de pagamento
+- [x] Implementar funcionalidade 10: regra e cálculo de comissão
+- [x] Implementar funcionalidade 11: resumo antes da confirmação
+- [x] Implementar funcionalidade 12: controle de estoque no salvamento e transições
+- [x] Implementar funcionalidade 13: cliente associado com identificação mínima
+- [x] Implementar funcionalidade 14: observações internas
+- [x] Implementar funcionalidade 15: suporte controlado a registro individual e venda geral
+- [x] Implementar funcionalidade 16: histórico mínimo de alterações
+- [x] Implementar funcionalidade 17: especificação de comprovante sem integração externa nesta rodada
+- [x] Implementar funcionalidade 18: cancelamento integral com preservação de histórico
+- [x] Implementar funcionalidade 19: método e situação de pagamento sem parcelamento completo
+- [x] Manter funcionalidade 20 de integrações externas fora do escopo desta rodada
+
+- [x] Aplicar canTransitionOrder em updateOrderStatus e bloquear transições inválidas também na UI
+- [x] Adicionar idempotência real ao registro e à atualização de pedidos
+- [x] Implementar atalho contextual em Revendedoras para iniciar pedido vinculado
+- [x] Adicionar testes dos procedimentos orders.list/create/updateStatus e bloqueio não-admin
+- [x] Executar validação visual autenticada do fluxo de Pedidos em desktop e mobile
+
+- [x] Tornar orders.create/createPersistedOrder idempotente e cobrir repetição do mesmo pedido persistido

@@ -16,7 +16,7 @@ function App() {
   const [section, setSection] = useState<Section>("painel");
   const [showAuth, setShowAuth] = useState(false);
   useEffect(() => subscribeStore(() => setUser(getSessionUser())), []);
-  useEffect(() => { const catalog = () => setSection("catalogo"); const orders = () => setSection("pedidos"); window.addEventListener("reseller-go-catalog", catalog); window.addEventListener("reseller-go-orders", orders); return () => { window.removeEventListener("reseller-go-catalog", catalog); window.removeEventListener("reseller-go-orders", orders); }; }, []);
+  useEffect(() => { const catalog = () => setSection("catalogo"); const orders = () => setSection("pedidos"); const managerOrder = () => setSection("pedidos"); window.addEventListener("reseller-go-catalog", catalog); window.addEventListener("reseller-go-orders", orders); window.addEventListener("manager-open-order-for-reseller", managerOrder); return () => { window.removeEventListener("reseller-go-catalog", catalog); window.removeEventListener("reseller-go-orders", orders); window.removeEventListener("manager-open-order-for-reseller", managerOrder); }; }, []);
   const openAuth = (mode: "login" | "register") => { setAuthMode(mode); setShowAuth(true); };
   if (!user && !showAuth) return <LandingPage onStart={openAuth} />;
   if (!user) return <AuthPage mode={authMode} onModeChange={setAuthMode} onSuccess={() => { setUser(getSessionUser()); setShowAuth(false); setSection("painel"); }} />;

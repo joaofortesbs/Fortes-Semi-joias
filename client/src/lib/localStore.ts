@@ -1,6 +1,10 @@
 export type Role = "gestora" | "revendedora";
 export type ProductStatus = "available" | "unavailable";
-export type OrderStatus = "pending" | "approved" | "separating" | "shipped" | "delivered";
+export type OrderStatus = "draft" | "pending" | "approved" | "paid" | "separating" | "shipped" | "delivered" | "cancelled";
+export type OrderOrigin = "direct" | "reseller";
+export type PaymentMethod = "pix" | "card" | "cash" | "transfer" | "pending";
+export type PaymentStatus = "pending" | "paid" | "partially_paid";
+export type OrderEntryType = "detailed" | "general";
 
 export type ResellerInviteStatus = "not_invited" | "pending" | "accepted" | "expired";
 
@@ -38,14 +42,29 @@ export type Product = {
   updatedAt?: string;
 };
 
+export type OrderItem = { productId: string; productName: string; unitPrice: number; quantity: number; subtotal: number };
+export type OrderHistoryEntry = { status: OrderStatus; at: string; by?: string };
 export type Order = {
   id: string;
-  resellerId: string;
-  items: { productId: string; quantity: number }[];
+  origin: OrderOrigin;
+  entryType: OrderEntryType;
+  resellerId?: string;
+  customerName?: string;
+  customerContact?: string;
+  items: OrderItem[];
   total: number;
   commission: number;
+  commissionRate: number;
   status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  saleDate: string;
+  notes?: string;
+  proofReference?: string;
+  requestId?: string;
   createdAt: string;
+  updatedAt: string;
+  history: OrderHistoryEntry[];
 };
 
 export type Notification = {
@@ -188,6 +207,62 @@ export function login(identifier: string, password: string, role: Role) {
 export function logout() { const store = readStore(); store.sessionUserId = null; writeStore(store); }
 export function updateStore(mutator: (store: Store) => void) { const store = readStore(); mutator(store); writeStore(store); return store; }
 
+export function createOrder(input: Omit<Order, "id" | "createdAt" | "updatedAt" | "history" | "commission" | "commissionRate" | "total" | "items"> & { items: Array<{ productId: string; quantity: number }>; resellerId?: string; manualDescription?: string; manualTotal?: number }) {
+  const store = readStore();
+  if (input.requestId) { const existing = store.orders.find(order => order.requestId === input.requestId); if (existing) return existing; }
+  if (input.origin === "reseller" && !input.resellerId) throw new Error("Selecione a revendedora responsável.");
+  if (input.origin === "direct") input.resellerId = undefined;
+  if (input.entryType === "general") {
+    if (!input.manualDescription?.trim() || !input.manualTotal || input.manualTotal <= 0) throw new Error("Informe a descrição e o valor da venda geral.");
+    input.items = [{ productId: "general-sale", quantity: 1 }];
+  }
+  if (!input.items.length) throw new Error("Adicione ao menos uma peça ao pedido.");
+  const resolvedItems: OrderItem[] = [];
+  for (const item of input.items) {
+    const product = store.products.find(candidate => candidate.id === item.productId);
+    if (input.entryType === "general" && item.productId === "general-sale") {
+      resolvedItems.push({ productId: "general-sale", productName: input.manualDescription!.trim(), unitPrice: input.manualTotal!, quantity: 1, subtotal: Number(input.manualTotal!.toFixed(2)) });
+      continue;
+    }
+    if (!product || product.status !== "available") throw new Error("Uma das peças selecionadas não está disponível.");
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || product.stock < item.quantity) throw new Error(`Estoque insuficiente para ${product.name}.`);
+    resolvedItems.push({ productId: product.id, productName: product.name, unitPrice: product.price, quantity: item.quantity, subtotal: Number((product.price * item.quantity).toFixed(2)) });
+  }
+  const total = Number(resolvedItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2));
+  const reseller = input.resellerId ? store.users.find(user => user.id === input.resellerId && user.role === "revendedora") : undefined;
+  const commissionRate = reseller ? reseller.commissionRate : 0;
+  const commission = calculateCommission(total, commissionRate);
+  const now = new Date().toISOString();
+  resolvedItems.forEach(item => { const product = store.products.find(candidate => candidate.id === item.productId); if (product) product.stock -= item.quantity; });
+  const order: Order = { ...input, items: resolvedItems, total, commission, commissionRate, id: crypto.randomUUID(), createdAt: now, updatedAt: now, history: [{ status: input.status, at: now }] };
+  store.orders.unshift(order);
+  store.notifications.unshift({ id: crypto.randomUUID(), title: "Novo pedido registrado", message: input.origin === "direct" ? "Uma venda direta foi registrada." : "Um pedido de revendedora foi enviado para acompanhamento.", read: false, createdAt: now });
+  writeStore(store);
+  return order;
+}
+
+function canTransitionOrderStatus(from: OrderStatus, to: OrderStatus) {
+  if (from === "cancelled" || from === "delivered") return false;
+  if (to === "cancelled") return true;
+  const sequence: OrderStatus[] = ["pending", "approved", "paid", "separating", "shipped", "delivered"];
+  return sequence.indexOf(to) >= sequence.indexOf(from);
+}
+
+export function updateOrderStatus(orderId: string, status: OrderStatus, by?: string) {
+  const store = readStore();
+  const order = store.orders.find(item => item.id === orderId);
+  if (!order) throw new Error("Pedido não encontrado.");
+  if (order.status === "cancelled") throw new Error("Um pedido cancelado não pode ser alterado.");
+  if (order.status === status) return order;
+  if (!canTransitionOrderStatus(order.status, status)) throw new Error("Transição de status inválida para este pedido.");
+  if (status === "cancelled") order.items.forEach(item => { const product = store.products.find(candidate => candidate.id === item.productId); if (product) product.stock += item.quantity; });
+  const now = new Date().toISOString();
+  order.status = status; order.updatedAt = now; order.history.push({ status, at: now, by });
+  if (status === "paid") order.paymentStatus = "paid";
+  writeStore(store);
+  return order;
+}
+
 export function createProduct(input: Omit<Product, "id" | "createdAt" | "updatedAt"> & { costBase?: number }) {
   const store = readStore();
   const now = new Date().toISOString();
@@ -224,4 +299,4 @@ export function deleteProduct(productId: string) {
 
 export const formatCurrency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 export const calculateCommission = (total: number, rate: number) => Number((total * (rate / 100)).toFixed(2));
-export const statusLabel: Record<OrderStatus, string> = { pending: "Pendente", approved: "Aprovado", separating: "Em separação", shipped: "Enviado", delivered: "Entregue" };
+export const statusLabel: Record<OrderStatus, string> = { draft: "Rascunho", pending: "Pendente", approved: "Aprovado", paid: "Pago", separating: "Em separação", shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado" };
