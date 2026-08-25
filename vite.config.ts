@@ -98,7 +98,9 @@ function vitePluginManusDebugCollector(): Plugin {
     },
 
     configureServer(server: ViteDevServer) {
-      // POST /__manus__/logs: Browser sends logs (written directly to files)
+      // POST /__manus__/logs: Browser sends logs (written directly to files).
+      // The collector itself ignores Chromium's benign ResizeObserver delivery
+      // diagnostic, so it cannot be misclassified as an app runtime failure.
       server.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {
           return next();

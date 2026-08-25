@@ -399,6 +399,13 @@
   });
 
   window.addEventListener("error", function (event) {
+    // Chromium can defer a ResizeObserver notification to the next frame and
+    // emit this diagnostic without an application stack. It is not a runtime
+    // failure, so do not report it as one.
+    if (event.message === "ResizeObserver loop completed with undelivered notifications.") {
+      return;
+    }
+
     store.consoleLogs.push({
       timestamp: Date.now(),
       level: "ERROR",
