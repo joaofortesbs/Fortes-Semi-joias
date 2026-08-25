@@ -321,3 +321,19 @@
 - [x] Aplicar RLS, grants, funções auxiliares e views do Painel
 - [x] Validar integridade, políticas e objetos criados sem dados fictícios
 - [x] Documentar o resultado e os bloqueios restantes da migração
+
+## Auditoria de importação — escopo atual
+
+- [x] Clonar e integrar o repositório privado ao workspace com autenticação segura, preservando histórico e estrutura relevantes.
+- [x] Mapear stack, dependências, scripts, rotas, componentes, estado, APIs, autenticação, banco de dados e configurações de ambiente.
+- [x] Auditar fluxos de gestoras e revendedoras, incluindo catálogo, clientes, pedidos, painel e persistência local/Supabase.
+- [x] Executar build, typecheck, testes automatizados e validações dos fluxos críticos; registrar falhas e riscos de produção reproduzíveis.
+- [x] Confirmar a necessidade de imagens de produtos e comprovantes e avaliar upload, autorização, armazenamento e entrega segura via storage gerenciado.
+- [x] Documentar diagnóstico completo, inventário funcional e backlog priorizado desta auditoria.
+- [ ] Aplicar refinamentos de experiência somente após o diagnóstico, preservando uma direção elegante, refinada, acessível e coerente.
+- [ ] Resolver a ausência de `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente seguro e repetir o teste de conectividade sem expor credenciais.
+- [ ] Investigar e decidir a correção do aviso de configuração `pnpm` ignorada e do bundle frontend acima de 500 kB.
+- [ ] Corrigir as credenciais Supabase: a validação autenticada retornou HTTP 401; repetir somente após fornecer URL e chave pública válidas do mesmo projeto.
+- [ ] Reabrir a validação de conectividade Supabase quando as credenciais públicas corretas forem disponibilizadas; a solicitação anterior foi recusada e nenhum valor foi exposto.
+- [ ] Corrigir scripts visuais para receber a URL do ambiente e separar claramente fixtures sintéticos de validações de produção, sem tratar dados artificiais como evidência comercial.
+- [ ] Remover ou isolar referências de comprovante e demais campos sensíveis até existir fluxo de upload com autorização e storage real.
