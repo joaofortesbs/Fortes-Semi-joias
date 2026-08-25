@@ -354,3 +354,11 @@
 - [x] Executar typecheck, testes, build e verificação visual após o pull.
 - [x] Documentar o commit remoto aplicado e salvar checkpoint sincronizado.
 - [x] Corrigir a duplicidade de instâncias/tipos do Vite introduzida pela sincronização recente com reinstalação limpa e repetir typecheck, testes e build.
+
+## Refinamento do Catálogo — abas Peças/Coleções
+
+- [x] Substituir o toggle retangular atual por abas de navegação selecionáveis posicionadas no topo da interface.
+- [x] Manter a busca horizontal e exibir `+ Adicionar peça` ao lado direito quando a aba Peças estiver ativa.
+- [x] Manter a busca horizontal e exibir `+ Nova coleção` ao lado direito quando a aba Coleções estiver ativa.
+- [x] Garantir estados ativo, foco por teclado, responsividade e coerência visual com a direção elegante existente.
+- [x] Adicionar/atualizar teste de contrato da navegação e validar visualmente desktop e mobile.
