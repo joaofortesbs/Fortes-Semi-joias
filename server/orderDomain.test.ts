@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+import { buildOrderInput, buildSalesHistory, canTransitionOrder, filterOrders, formatBRLInput, getOrderOriginLabel, getPaymentMethodLabel, getSelectableProducts, parseBRLInput } from "../client/src/features/orders/orderDomain";
+import type { Order } from "../client/src/lib/localStore";
+
+const baseOrder = (partial: Partial<Order> = {}): Order => ({
+  id: "order-1",
+  origin: "reseller",
+  entryType: "detailed",
+  resellerId: "reseller-1",
+  items: [{ productId: "product-1", productName: "Colar Aura", unitPrice: 100, quantity: 1, subtotal: 100 }],
+  total: 100,
+  commission: 20,
+  commissionRate: 20,
+  status: "pending",
+  paymentMethod: "pix",
+  paymentStatus: "pending",
+  saleDate: "2026-08-19T12:00:00.000Z",
+  createdAt: "2026-08-19T12:00:00.000Z",
+  updatedAt: "2026-08-19T12:00:00.000Z",
+  history: [{ status: "pending", at: "2026-08-19T12:00:00.000Z" }],
+  ...partial,
+});
+
+describe("orderDomain", () => {
+  it("filtra pedido por texto, status e origem", () => { const orders = [baseOrder(), baseOrder({ id: "order-2", origin: "direct", status: "approved", customerName: "Ana Lima", items: [{ productId: "product-2", productName: "Anel Essência", unitPrice: 80, quantity: 1, subtotal: 80 }], total: 80, commission: 0 })]; expect(filterOrders(orders, "aura", "all", "all")).toHaveLength(1); expect(filterOrders(orders, "ana", "approved", "direct")).toHaveLength(1); expect(filterOrders(orders, "", "pending", "direct")).toHaveLength(0); });
+  it("filtra pedidos pelo cliente registrado e deixa clientes sem vínculo fora do filtro", () => { const orders = [baseOrder({ customerId: "customer-1" }), baseOrder({ id: "order-2", customerId: "customer-2" })]; expect(filterOrders(orders, "", "all", "all", "customer-1")).toHaveLength(1); expect(filterOrders(orders, "", "all", "all", "all")).toHaveLength(2); });
+  it("seleciona peças disponíveis do Catálogo e exclui somente as indisponíveis", () => { const products = [{ id: "available", name: "Colar", category: "Colares", price: 100, stock: 0, status: "available", accent: "#fff" }, { id: "hidden", name: "Anel", category: "Anéis", price: 80, stock: 4, status: "unavailable", accent: "#fff" }] as never[]; expect(getSelectableProducts(products)).toEqual([products[0]]); });
+  it("permite progressão e cancelamento, mas bloqueia alteração após entrega/cancelamento", () => { expect(canTransitionOrder("pending", "approved")).toBe(true); expect(canTransitionOrder("pending", "cancelled")).toBe(true); expect(canTransitionOrder("delivered", "pending")).toBe(false); expect(canTransitionOrder("cancelled", "approved")).toBe(false); });
+  it("expõe labels operacionais legíveis", () => { expect(getOrderOriginLabel("direct")).toBe("Venda direta"); expect(getPaymentMethodLabel("pix")).toBe("Pix"); });
+  it("formata o valor geral em reais e aceita somente dígitos no valor numérico", () => { expect(formatBRLInput("12990")).toBe("R$ 129,90"); expect(formatBRLInput("R$ 1.234,56")).toBe("R$ 1.234,56"); expect(parseBRLInput("R$ 1.234,56")).toBe(1234.56); });
+  it("constrói o payload da gestora com customerId e sem campos removidos", () => { const payload = buildOrderInput({ requestId: "manager-request", entryType: "detailed", origin: "direct", customerId: "customer-manager", items: [{ productId: "product-1", quantity: 1 }], status: "pending", paymentMethod: "pix", paymentStatus: "paid", saleDate: "2026-08-19T12:00:00.000Z" }); expect(payload.customerId).toBe("customer-manager"); expect(payload).not.toHaveProperty("customerName"); expect(payload).not.toHaveProperty("customerContact"); expect(payload).not.toHaveProperty("notes"); expect(payload).not.toHaveProperty("proofReference"); });
+  it("constrói o payload da revendedora com customerId e origem vinculada", () => { const payload = buildOrderInput({ requestId: "reseller-request", entryType: "detailed", origin: "reseller", resellerId: "reseller-1", customerId: "customer-reseller", items: [{ productId: "product-1", quantity: 1 }], status: "pending", paymentMethod: "pending", paymentStatus: "pending", saleDate: "2026-08-19T12:00:00.000Z" }); expect(payload.customerId).toBe("customer-reseller"); expect(payload.origin).toBe("reseller"); expect(payload.resellerId).toBe("reseller-1"); expect(payload).not.toHaveProperty("customerName"); expect(payload).not.toHaveProperty("customerContact"); expect(payload).not.toHaveProperty("notes"); expect(payload).not.toHaveProperty("proofReference"); });
+  it("agrupa vendas reais por período e ignora pedidos cancelados", () => { const now = new Date("2026-08-19T12:00:00.000Z"); const points = buildSalesHistory([baseOrder({ saleDate: "2026-08-19T12:00:00.000Z", total: 97.9 }), baseOrder({ id: "cancelled", saleDate: "2026-08-19T12:00:00.000Z", status: "cancelled", total: 500 })], { range: "1m" }, now); expect(points).toHaveLength(6); expect(points.at(-1)?.value).toBe(97.9); expect(points.reduce((sum, point) => sum + point.value, 0)).toBe(97.9); });
+  it("mantém o valor total das vendas no período anual", () => { const now = new Date("2026-08-19T12:00:00.000Z"); const points = buildSalesHistory([baseOrder({ saleDate: "2026-07-10T12:00:00.000Z", total: 245 })], { range: "12m" }, now); expect(points.reduce((sum, point) => sum + point.value, 0)).toBe(245); });
+  it("filtra todo o tempo e intervalo personalizado de forma inclusiva", () => { const orders = [baseOrder({ saleDate: "2025-01-01T12:00:00.000Z", total: 50 }), baseOrder({ id: "order-2", saleDate: "2026-08-10T12:00:00.000Z", total: 80 })]; const now = new Date("2026-08-19T12:00:00.000Z"); expect(buildSalesHistory(orders, { range: "all" }, now).reduce((sum, point) => sum + point.value, 0)).toBe(130); expect(buildSalesHistory(orders, { range: "custom", from: "2026-08-01", to: "2026-08-19" }, now).reduce((sum, point) => sum + point.value, 0)).toBe(80); });
+});

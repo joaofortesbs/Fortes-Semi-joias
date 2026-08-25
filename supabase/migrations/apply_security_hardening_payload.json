@@ -1,0 +1,5 @@
+{
+  "project_id": "iaywdxeeztojzntjmvoa",
+  "name": "security_hardening_views_functions",
+  "query": "begin; alter view public.v_product_inventory set (security_invoker = true); alter view public.v_customer_ltv set (security_invoker = true); alter function public.set_updated_at() set search_path = public; revoke all on function public.handle_new_auth_user() from anon, authenticated; grant execute on function public.handle_new_auth_user() to postgres, service_role; revoke all on function public.is_org_member(uuid) from anon; grant execute on function public.is_org_member(uuid) to authenticated; revoke all on function public.has_org_role(uuid, public.member_role[]) from anon; grant execute on function public.has_org_role(uuid, public.member_role[]) to authenticated; commit;"
+}

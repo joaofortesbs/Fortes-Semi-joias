@@ -1,0 +1,5 @@
+{
+  "project_id": "iaywdxeeztojzntjmvoa",
+  "name": "move_security_helpers_private",
+  "query": "begin; create schema if not exists private; alter function public.set_updated_at() set schema private; alter function public.handle_new_auth_user() set schema private; alter function public.is_org_member(uuid) set schema private; alter function public.has_org_role(uuid, public.member_role[]) set schema private; alter extension citext set schema extensions; commit;"
+}
