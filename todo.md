@@ -337,3 +337,19 @@
 - [x] Documentar a reabertura da validação Supabase como bloqueio externo; a solicitação de credenciais corretas foi recusada e nenhum valor foi exposto.
 - [x] Auditar scripts visuais, identificar URL fixa e fixtures sintéticos, e registrar a parametrização/isolamento como backlog de confiabilidade.
 - [x] Avaliar referências de comprovante e campos sensíveis, confirmando que o upload privado com autorização e storage real deve permanecer no backlog P2.
+
+## Validação Supabase — nova rodada
+
+- [ ] Atualizar `SUPABASE_URL` e `SUPABASE_ANON_KEY` com valores públicos corretos no ambiente seguro.
+- [ ] Executar teste REST leve com a chave anon e confirmar ausência de HTTP 401/403.
+- [ ] Verificar schema aplicado, tabelas esperadas, RLS habilitado e políticas sem expor dados protegidos.
+- [ ] Validar isolamento por organização/papel com testes seguros e sem inserir dados fictícios.
+- [ ] Documentar o resultado da validação Supabase e criar checkpoint revisável.
+
+## Sincronização GitHub → Manus
+
+- [ ] Buscar a branch `main` atual de `joaofortesbs/Fortes-Semi-joias` e comparar com o workspace Manus.
+- [ ] Preservar alterações locais e histórico relevante antes de aplicar a sincronização.
+- [ ] Integrar os commits remotos com conflitos controlados, sem `git reset --hard` ou sobrescrita silenciosa.
+- [ ] Executar typecheck, testes, build e verificação visual após o pull.
+- [ ] Documentar o commit remoto aplicado e salvar checkpoint sincronizado.
