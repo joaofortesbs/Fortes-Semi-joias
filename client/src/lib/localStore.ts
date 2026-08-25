@@ -79,7 +79,7 @@ export type Notification = {
   createdAt: string;
 };
 
-type Store = {
+export type Store = {
   users: LocalUser[];
   customers: Customer[];
   products: Product[];
@@ -88,6 +88,28 @@ type Store = {
   collections: Collection[];
   sessionUserId: string | null;
 };
+
+type RemotePersistence = (store: Store) => Promise<Store | void>;
+let remotePersistence: RemotePersistence | null = null;
+let remoteWriteQueue = Promise.resolve();
+let remotePersistenceError: Error | null = null;
+
+export function configureRemotePersistence(persist: RemotePersistence | null) {
+  remotePersistence = persist;
+}
+
+export function getRemotePersistenceError() {
+  return remotePersistenceError;
+}
+
+export function clearRemotePersistenceError() {
+  remotePersistenceError = null;
+}
+
+export async function flushRemotePersistence() {
+  await remoteWriteQueue;
+  if (remotePersistenceError) throw remotePersistenceError;
+}
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
 const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], sessionUserId: null };
@@ -124,11 +146,40 @@ function readStore(): Store {
 function writeStore(store: Store) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   window.dispatchEvent(new Event("fernanda-store-updated"));
+  if (remotePersistence) {
+    const snapshot = structuredClone(store);
+    remoteWriteQueue = remoteWriteQueue
+      .then(async () => {
+        const remoteStore = await remotePersistence?.(snapshot);
+        if (remoteStore) {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteStore));
+          window.dispatchEvent(new Event("fernanda-store-updated"));
+        }
+        remotePersistenceError = null;
+      })
+      .catch(error => {
+        remotePersistenceError =
+          error instanceof Error
+            ? error
+            : new Error("Não foi possível salvar os dados no Supabase.");
+        window.dispatchEvent(new Event("fernanda-remote-persistence-error"));
+      });
+  }
+}
+
+export function replaceStore(store: Store) {
+  privateProductMeta = {};
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  window.dispatchEvent(new Event("fernanda-store-updated"));
 }
 
 export function getStore() { return readStore(); }
 export function getProductsForRole(_role: Role) { return readStore().products.map(product => ({ ...product })); }
 export function getProductCost(productId: string) { readStore(); return privateProductMeta[productId]?.costBase; }
+export function setProductCost(productId: string, costBase?: number) {
+  if (costBase === undefined) delete privateProductMeta[productId];
+  else privateProductMeta[productId] = { costBase };
+}
 export function getSessionUser() {
   const store = readStore();
   return store.users.find(user => user.id === store.sessionUserId) ?? null;
@@ -210,7 +261,7 @@ export function login(identifier: string, password: string, role: Role) {
   writeStore(store);
   return user;
 }
-export function logout() { const store = readStore(); store.sessionUserId = null; writeStore(store); }
+export function logout() { privateProductMeta = {}; const store = readStore(); store.sessionUserId = null; writeStore(store); }
 export function updateStore(mutator: (store: Store) => void) { const store = readStore(); mutator(store); writeStore(store); return store; }
 
 export function createCustomer(input: { name: string; phone: string; email?: string }) {

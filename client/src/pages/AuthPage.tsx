@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createAccount, login, type Role } from "@/lib/localStore";
+import { replaceStore, type Role } from "@/lib/localStore";
+import {
+  loginRemoteAccount,
+  registerRemoteAccount,
+} from "@/lib/remotePersistence";
 
 type Props = { mode: "login" | "register"; onModeChange: (mode: "login" | "register") => void; onSuccess: () => void };
 
@@ -18,14 +22,25 @@ export default function AuthPage({ mode, onModeChange, onSuccess }: Props) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setError(""); setLoading(true);
     try {
-      if (mode === "register") createAccount({ name, email, phone, password, role, commissionRate: role === "revendedora" ? 30 : 0 });
-      else login(email, password, role);
+      const result = mode === "register"
+        ? await registerRemoteAccount({ name, email, phone, password, role, inviteToken: window.location.pathname.startsWith("/convite/") ? window.location.pathname.split("/").pop() : undefined })
+        : await loginRemoteAccount({ email, password, role });
+      replaceStore({
+        users: [result.user],
+        customers: [],
+        products: [],
+        orders: [],
+        notifications: [],
+        collections: [],
+        sessionUserId: result.user.id,
+      });
       onSuccess();
-    } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível concluir agora."); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível concluir agora.");
+    } finally { setLoading(false); }
   };
 
   return (
