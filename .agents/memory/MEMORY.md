@@ -1,0 +1,2 @@
+- [Supabase REST validation](supabase-rest-validation.md) — compare connector-proxy results with direct project REST responses when schema-cache errors appear.
+- [Supabase authentication bridge](supabase-authentication-bridge.md) — use app endpoints and an HttpOnly session cookie; keep Service Role exclusively on the server.

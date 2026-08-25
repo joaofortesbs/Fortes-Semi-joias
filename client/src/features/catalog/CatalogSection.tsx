@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import EmptyState from "@/components/EmptyState";
-import { createCollection, createProduct, deleteCollection, deleteProduct, formatCurrency, getProductCost, updateCollection, updateProduct, type Collection, type Product } from "@/lib/localStore";
+import { createCollection, createProduct, deleteCollection, deleteProduct, flushRemotePersistence, formatCurrency, getProductCost, getSessionUser, setProductCost, updateCollection, updateProduct, type Collection, type Product } from "@/lib/localStore";
 import { emptyProductDraft, formatMoneyInput, PRODUCT_CATEGORIES, PRODUCT_COLLECTIONS, PRODUCT_TAGS, productToDraft, validateProductDraft, type ProductDraft } from "./productDomain";
+import { fetchRemoteProductCost, saveRemoteProductCost } from "@/lib/remotePersistence";
 import { trpc } from "@/lib/trpc";
 
 type Props = { products: Product[]; collections: Collection[]; onRefresh: () => void };
@@ -40,18 +41,20 @@ function ProductDialog({ triggerRef, open, product, collections, onClose, onSave
   const [draft, setDraft] = useState<ProductDraft>(emptyProductDraft());
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [remoteCost, setRemoteCost] = useState<number | undefined>();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const isEdit = Boolean(product);
-  const localSessionExists = typeof window !== "undefined" && Boolean(window.localStorage.getItem("fernanda-fortes-saas-store-v2-real-data"));
+  const localSessionExists = Boolean(getSessionUser());
   const costQuery = trpc.productPrivate.getCost.useQuery({ productId: product?.id ?? "" }, { enabled: open && Boolean(product) && !localSessionExists, retry: false });
   const saveCostMutation = trpc.productPrivate.saveCost.useMutation();
-  useEffect(() => { if (open) reset(product); }, [open, product?.id, costQuery.data?.costBase]);
-  function reset(nextProduct: Product | null) { const serverCost = nextProduct ? costQuery.data?.costBase : undefined; const fallbackCost = nextProduct ? getProductCost(nextProduct.id) : undefined; setStep(1); setDraft(nextProduct ? { ...productToDraft(nextProduct), costBase: (serverCost ?? fallbackCost)?.toString().replace(".", ",") ?? "" } : emptyProductDraft()); setError(""); setFieldErrors({}); }
+  useEffect(() => { if (open && product && localSessionExists) void fetchRemoteProductCost(product.id).then(result => { setProductCost(product.id, result.costBase ?? undefined); setRemoteCost(result.costBase ?? undefined); }).catch(() => { setProductCost(product.id); setRemoteCost(undefined); }); }, [open, product?.id, localSessionExists]);
+  useEffect(() => { if (open) reset(product); }, [open, product?.id, costQuery.data?.costBase, remoteCost]);
+  function reset(nextProduct: Product | null) { const serverCost = nextProduct ? (remoteCost ?? costQuery.data?.costBase) : undefined; const fallbackCost = nextProduct ? getProductCost(nextProduct.id) : undefined; setStep(1); setDraft(nextProduct ? { ...productToDraft(nextProduct), costBase: (serverCost ?? fallbackCost)?.toString().replace(".", ",") ?? "" } : emptyProductDraft()); setError(""); setFieldErrors({}); }
   function handleOpen(next: boolean) { if (next) reset(product); else onClose(); }
   function change<K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) { setDraft(current => ({ ...current, [key]: value })); setFieldErrors(current => ({ ...current, [key]: "" })); }
   function next() { const result = validateProductDraft(draft); const stepOneKeys = ["name", "imageUrl", "category", "variations"]; const stepOneErrors = Object.fromEntries(Object.entries(result.errors).filter(([key]) => stepOneKeys.includes(key))); if (Object.keys(stepOneErrors).length > 0) { setFieldErrors(stepOneErrors); return; } setError(""); setStep(2); }
-  async function save() { const result = validateProductDraft(draft); if (!result.valid) { setFieldErrors(result.errors as Record<string, string>); setError("Revise os campos destacados antes de salvar."); setStep(Object.keys(result.errors).some(key => ["name", "category", "imageUrl"].includes(key)) ? 1 : 2); return; } setSaving(true); try { const savedProduct = product ? updateProduct(product.id, result.normalized) : createProduct(result.normalized); const costBase = result.normalized.costBase; if (costBase !== undefined && !localSessionExists) await saveCostMutation.mutateAsync({ productId: savedProduct.id, costBase }); onSaved(); } catch (caught) { setError(caught instanceof Error ? caught.message : "Não foi possível salvar a peça."); } finally { setSaving(false); } }
+  async function save() { const result = validateProductDraft(draft); if (!result.valid) { setFieldErrors(result.errors as Record<string, string>); setError("Revise os campos destacados antes de salvar."); setStep(Object.keys(result.errors).some(key => ["name", "category", "imageUrl"].includes(key)) ? 1 : 2); return; } setSaving(true); try { const savedProduct = product ? updateProduct(product.id, result.normalized) : createProduct(result.normalized); const costBase = result.normalized.costBase; if (localSessionExists) { await flushRemotePersistence(); if (costBase !== undefined) await saveRemoteProductCost(savedProduct.id, costBase); } else if (costBase !== undefined) await saveCostMutation.mutateAsync({ productId: savedProduct.id, costBase }); onSaved(); } catch (caught) { setError(caught instanceof Error ? caught.message : "Não foi possível salvar a peça."); } finally { setSaving(false); } }
   function addVariation() { change("variations", [...draft.variations, { name: "", options: [""] }]); }
   function removeVariation(index: number) { change("variations", draft.variations.filter((_, itemIndex) => itemIndex !== index)); }
   function addOption(index: number) { change("variations", draft.variations.map((variation, itemIndex) => itemIndex === index ? { ...variation, options: [...variation.options, ""] } : variation)); }
