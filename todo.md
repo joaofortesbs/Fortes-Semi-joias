@@ -348,8 +348,9 @@
 
 ## Sincronização GitHub → Manus
 
-- [ ] Buscar a branch `main` atual de `joaofortesbs/Fortes-Semi-joias` e comparar com o workspace Manus.
-- [ ] Preservar alterações locais e histórico relevante antes de aplicar a sincronização.
-- [ ] Integrar os commits remotos com conflitos controlados, sem `git reset --hard` ou sobrescrita silenciosa.
-- [ ] Executar typecheck, testes, build e verificação visual após o pull.
-- [ ] Documentar o commit remoto aplicado e salvar checkpoint sincronizado.
+- [x] Buscar a branch `main` atual de `joaofortesbs/Fortes-Semi-joias` e comparar com o workspace Manus.
+- [x] Preservar alterações locais e histórico relevante antes de aplicar a sincronização.
+- [x] Integrar os commits remotos com conflitos controlados, sem `git reset --hard` ou sobrescrita silenciosa.
+- [x] Executar typecheck, testes, build e verificação visual após o pull.
+- [x] Documentar o commit remoto aplicado e salvar checkpoint sincronizado.
+- [x] Corrigir a duplicidade de instâncias/tipos do Vite introduzida pela sincronização recente com reinstalação limpa e repetir typecheck, testes e build.
