@@ -362,3 +362,12 @@
 - [x] Manter a busca horizontal e exibir `+ Nova coleção` ao lado direito quando a aba Coleções estiver ativa.
 - [x] Garantir estados ativo, foco por teclado, responsividade e coerência visual com a direção elegante existente.
 - [x] Adicionar/atualizar teste de contrato da navegação e validar visualmente desktop e mobile.
+
+## Investigação estratégica — seção Financeiro
+
+- [x] Pesquisar dores financeiras de gestoras de joias e semijoias e a linguagem usada para descrevê-las.
+- [x] Mapear práticas manuais, planilhas e ferramentas usadas para caixa, contas a receber, repasses, margem, estoque e cobrança.
+- [x] Pesquisar benchmarks e concorrentes de gestão de semijoias e varejo/revenda, documentando mecanismos e limites.
+- [x] Transformar achados em oportunidades, hipóteses, escopo MVP e visão evolutiva da seção Financeiro.
+- [x] Definir entidades, indicadores, fluxos, permissões, integrações e critérios de sucesso da nova seção.
+- [x] Entregar documento objetivo com fontes, diagnóstico, recomendação e backlog priorizado.
