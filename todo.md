@@ -340,11 +340,11 @@
 
 ## Validação Supabase — nova rodada
 
-- [ ] Atualizar `SUPABASE_URL` e `SUPABASE_ANON_KEY` com valores públicos corretos no ambiente seguro.
-- [ ] Executar teste REST leve com a chave anon e confirmar ausência de HTTP 401/403.
-- [ ] Verificar schema aplicado, tabelas esperadas, RLS habilitado e políticas sem expor dados protegidos.
-- [ ] Validar isolamento por organização/papel com testes seguros e sem inserir dados fictícios.
-- [ ] Documentar o resultado da validação Supabase e criar checkpoint revisável.
+- [x] Solicitar atualização de `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente seguro; a validação permanece bloqueada por credenciais inválidas/recusadas.
+- [x] Executar as tentativas seguras de teste REST com a chave anon e registrar HTTP 401; não confirmar sucesso sem credenciais válidas.
+- [x] Registrar que schema, tabelas e RLS não puderam ser verificados sem autenticação válida; nenhuma informação protegida foi exposta.
+- [x] Registrar que o isolamento por organização/papel permanece não validado por bloqueio de autenticação, sem inserir dados fictícios.
+- [x] Documentar o resultado da validação Supabase e criar checkpoint revisável.
 
 ## Sincronização GitHub → Manus
 
