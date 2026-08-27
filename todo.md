@@ -371,3 +371,16 @@
 - [x] Transformar achados em oportunidades, hipóteses, escopo MVP e visão evolutiva da seção Financeiro.
 - [x] Definir entidades, indicadores, fluxos, permissões, integrações e critérios de sucesso da nova seção.
 - [x] Entregar documento objetivo com fontes, diagnóstico, recomendação e backlog priorizado.
+
+## PRD — seção Financeiro na sidebar
+
+- [x] Consolidar contexto da plataforma, diagnóstico anterior e decisões abertas no PRD.
+- [x] Especificar problema, persona gestora, jobs-to-be-done, objetivos e não objetivos.
+- [x] Definir entrada na sidebar, arquitetura da informação e navegação da seção Financeiro.
+- [x] Detalhar escopo MVP, requisitos funcionais, fluxos ponta a ponta e regras de negócio.
+- [x] Definir estados financeiros, modelo de dados, APIs conceituais, integrações e migração.
+- [x] Definir permissões, RLS, segurança, privacidade, auditoria e tratamento de comprovantes.
+- [x] Especificar UX/UI, acessibilidade, responsividade, temas e estados de interface.
+- [x] Definir métricas, roadmap, plano de entrevistas, rollout, riscos e decisões abertas.
+- [x] Definir critérios de aceite, plano de testes e glossário.
+- [x] Entregar `PRD_FINANCEIRO.md` e salvar checkpoint revisável sem implementar código.
