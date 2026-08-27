@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import EmptyState from "@/components/EmptyState";
 import ResellersSection from "@/features/resellers/ResellersSection";
 import CatalogSection from "@/features/catalog/CatalogSection";
+import FinanceSection from "@/features/finance/FinanceSection";
 import type { Section } from "@/components/AppShell";
 import {
   createCustomer,
@@ -92,6 +93,7 @@ export default function ManagerDashboard({ section }: Props) {
         onRefresh={refreshStore}
       />
     );
+  if (section === "financeiro") return <FinanceSection />;
   if (section === "revendedoras")
     return (
       <ResellersSection

@@ -35,6 +35,7 @@ export default function AuthPage({ mode, onModeChange, onSuccess }: Props) {
         orders: [],
         notifications: [],
         collections: [],
+        finance: { payables: [] },
         sessionUserId: result.user.id,
       });
       onSuccess();

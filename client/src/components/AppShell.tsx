@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Gem, LayoutDashboard, LogOut, Menu, Package, ShoppingBag, UsersRound } from "lucide-react";
+import { Bell, ChevronDown, Gem, LayoutDashboard, LogOut, Menu, Package, ShoppingBag, UsersRound, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -6,7 +6,7 @@ import { getStore, updateStore, type LocalUser } from "@/lib/localStore";
 import { getSectionLabel, getSectionsForRole, type SectionId, type SectionIconKey } from "@shared/sectionRegistry";
 
 export type Section = SectionId;
-const sectionIcons: Record<SectionIconKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, catalog: Package, orders: ShoppingBag, resellers: UsersRound };
+const sectionIcons: Record<SectionIconKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, catalog: Package, orders: ShoppingBag, finance: Wallet, resellers: UsersRound };
 type Props = { user: LocalUser; section: Section; setSection: (section: Section) => void; onLogout: () => void; children: React.ReactNode };
 
 export default function AppShell({ user, section, setSection, onLogout, children }: Props) {

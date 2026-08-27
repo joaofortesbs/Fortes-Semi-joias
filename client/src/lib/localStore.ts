@@ -79,6 +79,10 @@ export type Notification = {
   createdAt: string;
 };
 
+export type FinancialSettlement = { id: string; amount: number; date: string; method: PaymentMethod; note?: string };
+export type FinancialPayable = { id: string; description: string; category: string; supplier?: string; amount: number; dueDate: string; paidAmount: number; status: "open" | "partial" | "paid" | "overdue" | "cancelled"; createdAt: string; settlements: FinancialSettlement[] };
+export type FinanceStore = { payables: FinancialPayable[] };
+
 export type Store = {
   users: LocalUser[];
   customers: Customer[];
@@ -86,6 +90,7 @@ export type Store = {
   orders: Order[];
   notifications: Notification[];
   collections: Collection[];
+  finance: FinanceStore;
   sessionUserId: string | null;
 };
 
@@ -112,7 +117,7 @@ export async function flushRemotePersistence() {
 }
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
-const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], sessionUserId: null };
+const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], finance: { payables: [] }, sessionUserId: null };
 let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
@@ -133,7 +138,7 @@ function readStore(): Store {
       const { costBase: _legacyCost, sku: _legacySku, ...publicProduct } = product;
       return publicProduct as Product;
     });
-    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [] } as Store;
+    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [], finance: parsed.finance ?? { payables: [] } } as Store;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     return normalized;
   } catch {
@@ -169,7 +174,9 @@ function writeStore(store: Store) {
 
 export function replaceStore(store: Store) {
   privateProductMeta = {};
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  const current = readStore();
+  const normalized = { ...store, finance: store.finance ?? current.finance ?? { payables: [] } };
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new Event("fernanda-store-updated"));
 }
 
@@ -263,6 +270,21 @@ export function login(identifier: string, password: string, role: Role) {
 }
 export function logout() { privateProductMeta = {}; const store = readStore(); store.sessionUserId = null; writeStore(store); }
 export function updateStore(mutator: (store: Store) => void) { const store = readStore(); mutator(store); writeStore(store); return store; }
+export function createPayable(input: { description: string; category: string; supplier?: string; amount: number; dueDate: string }) {
+  const store = readStore();
+  if (!input.description.trim() || !input.category.trim() || !input.dueDate || !Number.isFinite(input.amount) || input.amount <= 0) throw new Error("Informe descrição, categoria, valor e vencimento.");
+  const payable: FinancialPayable = { id: crypto.randomUUID(), description: input.description.trim(), category: input.category.trim(), supplier: input.supplier?.trim() || undefined, amount: Number(input.amount.toFixed(2)), dueDate: input.dueDate, paidAmount: 0, status: "open", createdAt: new Date().toISOString(), settlements: [] };
+  store.finance.payables.unshift(payable); writeStore(store); return payable;
+}
+export function settlePayable(payableId: string, input: { amount: number; method: PaymentMethod; note?: string }) {
+  const store = readStore(); const payable = store.finance.payables.find(item => item.id === payableId);
+  if (!payable) throw new Error("Compromisso não encontrado.");
+  const remaining = Number((payable.amount - payable.paidAmount).toFixed(2));
+  if (!Number.isFinite(input.amount) || input.amount <= 0 || input.amount > remaining) throw new Error("O pagamento deve ser maior que zero e não pode exceder o saldo.");
+  payable.paidAmount = Number((payable.paidAmount + input.amount).toFixed(2)); payable.status = payable.paidAmount >= payable.amount ? "paid" : "partial";
+  payable.settlements.push({ id: crypto.randomUUID(), amount: Number(input.amount.toFixed(2)), date: new Date().toISOString(), method: input.method, note: input.note?.trim() || undefined });
+  writeStore(store); return payable;
+}
 
 export function createCustomer(input: { name: string; phone: string; email?: string }) {
   const store = readStore();

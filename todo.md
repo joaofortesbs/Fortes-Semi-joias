@@ -384,3 +384,16 @@
 - [x] Definir métricas, roadmap, plano de entrevistas, rollout, riscos e decisões abertas.
 - [x] Definir critérios de aceite, plano de testes e glossário.
 - [x] Entregar `PRD_FINANCEIRO.md` e salvar checkpoint revisável sem implementar código.
+
+## Implementação — seção Financeiro
+
+- [x] Adicionar Financeiro à sidebar da gestora com contrato de seção, ícone e estado ativo.
+- [x] Modelar entidades financeiras no domínio local; migração remota dedicada permanece explicitamente como próxima etapa dependente de RLS/Supabase.
+- [x] Implementar persistência local compatível, regras de recebíveis, pagamentos, comissões e histórico; persistência server-side por organização permanece pendente.
+- [x] Implementar contratos de domínio para Visão Hoje, Receber, Pagar, Comissões, Margem e Fluxo de caixa; APIs protegidas dedicadas permanecem backlog técnico.
+- [x] Construir a interface Financeiro responsiva, acessível e coerente com a direção visual da plataforma.
+- [x] Integrar dados reais de pedidos, produtos, revendedoras e custos sem expor informações privadas; clientes são refletidos via pedidos quando aplicável.
+- [x] Adicionar testes Vitest para o domínio financeiro e manter cobertura existente de segurança/idempotência/permissões; testes dedicados de RLS dependem do Supabase remoto.
+- [x] Validar typecheck, 71 testes, build, restart e preview público; validação autenticada visual completa depende de sessão de gestora disponível.
+- [x] Documentar limitações, bloqueios Supabase/RLS e estratégia de comprovantes na documentação estratégica e no backlog.
+- [x] Preparar a entrega do checkpoint revisável da implementação.
