@@ -117,15 +117,17 @@ export async function flushRemotePersistence() {
 }
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
+const PREVIEW_STORAGE_KEY = "fernanda-fortes-saas-finance-preview-v1";
+function getStorageKey() { return typeof window !== "undefined" && window.location?.pathname === "/preview/financeiro" ? PREVIEW_STORAGE_KEY : STORAGE_KEY; }
 const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], finance: { payables: [] }, sessionUserId: null };
 let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
   if (typeof window === "undefined") return structuredClone(emptyStore);
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = window.localStorage.getItem(getStorageKey());
   if (!raw) {
     const freshStore = structuredClone(emptyStore);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(freshStore));
     return freshStore;
   }
   try {
@@ -139,17 +141,17 @@ function readStore(): Store {
       return publicProduct as Product;
     });
     const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [], finance: parsed.finance ?? { payables: [] } } as Store;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(normalized));
     return normalized;
   } catch {
     const freshStore = structuredClone(emptyStore);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(freshStore));
     return freshStore;
   }
 }
 
 function writeStore(store: Store) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  window.localStorage.setItem(getStorageKey(), JSON.stringify(store));
   window.dispatchEvent(new Event("fernanda-store-updated"));
   if (remotePersistence) {
     const snapshot = structuredClone(store);
@@ -176,11 +178,34 @@ export function replaceStore(store: Store) {
   privateProductMeta = {};
   const current = readStore();
   const normalized = { ...store, finance: store.finance ?? current.finance ?? { payables: [] } };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  window.localStorage.setItem(getStorageKey(), JSON.stringify(normalized));
   window.dispatchEvent(new Event("fernanda-store-updated"));
 }
 
 export function getStore() { return readStore(); }
+
+export function seedFinancePreview() {
+  if (typeof window === "undefined" || getStorageKey() !== PREVIEW_STORAGE_KEY) return;
+  const previewStore: Store = {
+    users: [
+      { id: "preview-manager", name: "Marina Fortes", email: "preview@fernandafortes.com", phone: "", role: "gestora", password: "", active: true, commissionRate: 0, createdAt: "2026-08-01T12:00:00.000Z" },
+      { id: "preview-reseller-1", name: "Ana Luiza", email: "ana@preview.local", phone: "", role: "revendedora", password: "", active: true, commissionRate: 20, createdAt: "2026-08-01T12:00:00.000Z" },
+      { id: "preview-reseller-2", name: "Beatriz Costa", email: "bia@preview.local", phone: "", role: "revendedora", password: "", active: true, commissionRate: 18, createdAt: "2026-08-01T12:00:00.000Z" },
+    ],
+    customers: [],
+    products: [
+      { id: "preview-gold", name: "Colar Aurora", category: "Colares", price: 189, stock: 8, status: "available", accent: "#D7B46A", showInStore: true },
+      { id: "preview-ring", name: "Anel Essência", category: "Anéis", price: 129, stock: 12, status: "available", accent: "#B48B5A", showInStore: true },
+    ],
+    orders: [
+      { id: "preview-order-1", origin: "reseller", entryType: "detailed", resellerId: "preview-reseller-1", customerName: "Clara Mendes", items: [{ productId: "preview-gold", productName: "Colar Aurora", unitPrice: 189, quantity: 1, subtotal: 189 }], total: 189, commission: 37.8, commissionRate: 20, status: "delivered", paymentMethod: "pix", paymentStatus: "paid", saleDate: "2026-08-25T12:00:00.000Z", createdAt: "2026-08-25T12:00:00.000Z", updatedAt: "2026-08-25T12:00:00.000Z", history: [] },
+      { id: "preview-order-2", origin: "reseller", entryType: "detailed", resellerId: "preview-reseller-2", customerName: "Juliana Prado", items: [{ productId: "preview-ring", productName: "Anel Essência", unitPrice: 129, quantity: 1, subtotal: 129 }], total: 129, commission: 23.22, commissionRate: 18, status: "approved", paymentMethod: "pending", paymentStatus: "pending", saleDate: "2026-08-26T12:00:00.000Z", createdAt: "2026-08-26T12:00:00.000Z", updatedAt: "2026-08-26T12:00:00.000Z", history: [] },
+    ],
+    notifications: [], collections: [], finance: { payables: [{ id: "preview-payable-1", description: "Reposição de embalagens", category: "Operação", supplier: "Ateliê da Marca", amount: 240, dueDate: "2026-08-30", paidAmount: 0, status: "open", createdAt: "2026-08-26T12:00:00.000Z", settlements: [] }] }, sessionUserId: "preview-manager",
+  };
+  window.localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(previewStore));
+}
+
 export function getProductsForRole(_role: Role) { return readStore().products.map(product => ({ ...product })); }
 export function getProductCost(productId: string) { readStore(); return privateProductMeta[productId]?.costBase; }
 export function setProductCost(productId: string, costBase?: number) {

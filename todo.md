@@ -397,3 +397,12 @@
 - [x] Validar typecheck, 71 testes, build, restart e preview público; validação autenticada visual completa depende de sessão de gestora disponível.
 - [x] Documentar limitações, bloqueios Supabase/RLS e estratégia de comprovantes na documentação estratégica e no backlog.
 - [x] Preparar a entrega do checkpoint revisável da implementação.
+
+## Preview segura do Financeiro
+
+- [x] Criar uma rota de preview pública e isolada para visualizar Financeiro sem autenticação.
+- [x] Reutilizar a mesma UI real com dados de demonstração claramente identificados e sem persistência no store real.
+- [x] Garantir que a preview não acesse Supabase, não use dados reais e não altere o fluxo protegido.
+- [x] Validar navegação interna, ações, responsividade, acessibilidade e bloqueio de mutações reais.
+- [x] Documentar a URL `/preview/financeiro` e a diferença entre demonstração e ambiente de produção.
+- [x] Preparar checkpoint revisável da preview.
