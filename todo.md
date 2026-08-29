@@ -406,3 +406,13 @@
 - [x] Validar navegação interna, ações, responsividade, acessibilidade e bloqueio de mutações reais.
 - [x] Documentar a URL `/preview/financeiro` e a diferença entre demonstração e ambiente de produção.
 - [x] Preparar checkpoint revisável da preview.
+
+## Pull Request — sincronização Manus → GitHub
+
+- [ ] Confirmar remoto, branch atual, main remota e divergência do workspace.
+- [ ] Preservar a main remota e criar uma branch própria para entrega.
+- [ ] Revisar o diff das alterações atuais e incluir apenas o escopo desejado.
+- [ ] Executar typecheck, testes e build antes do envio.
+- [ ] Criar novo commit de entrega com mensagem rastreável.
+- [ ] Fazer push da branch e abrir Pull Request para `main`.
+- [ ] Documentar URL, commit, arquivos principais e limitações do PR.
