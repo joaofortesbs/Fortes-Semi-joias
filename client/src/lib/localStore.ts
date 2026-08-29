@@ -79,6 +79,10 @@ export type Notification = {
   createdAt: string;
 };
 
+export type FinancialSettlement = { id: string; amount: number; date: string; method: PaymentMethod; note?: string };
+export type FinancialPayable = { id: string; description: string; category: string; supplier?: string; amount: number; dueDate: string; paidAmount: number; status: "open" | "partial" | "paid" | "overdue" | "cancelled"; createdAt: string; settlements: FinancialSettlement[] };
+export type FinanceStore = { payables: FinancialPayable[] };
+
 export type Store = {
   users: LocalUser[];
   customers: Customer[];
@@ -86,6 +90,7 @@ export type Store = {
   orders: Order[];
   notifications: Notification[];
   collections: Collection[];
+  finance: FinanceStore;
   sessionUserId: string | null;
 };
 
@@ -112,15 +117,17 @@ export async function flushRemotePersistence() {
 }
 
 const STORAGE_KEY = "fernanda-fortes-saas-store-v2-real-data";
-const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], sessionUserId: null };
+const PREVIEW_STORAGE_KEY = "fernanda-fortes-saas-finance-preview-v1";
+function getStorageKey() { return typeof window !== "undefined" && window.location?.pathname === "/preview/financeiro" ? PREVIEW_STORAGE_KEY : STORAGE_KEY; }
+const emptyStore: Store = { users: [], customers: [], products: [], orders: [], notifications: [], collections: [], finance: { payables: [] }, sessionUserId: null };
 let privateProductMeta: Record<string, { costBase?: number }> = {};
 
 function readStore(): Store {
   if (typeof window === "undefined") return structuredClone(emptyStore);
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = window.localStorage.getItem(getStorageKey());
   if (!raw) {
     const freshStore = structuredClone(emptyStore);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(freshStore));
     return freshStore;
   }
   try {
@@ -133,18 +140,18 @@ function readStore(): Store {
       const { costBase: _legacyCost, sku: _legacySku, ...publicProduct } = product;
       return publicProduct as Product;
     });
-    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [] } as Store;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    const normalized = { ...emptyStore, ...parsed, customers: parsed.customers ?? [], products, collections: parsed.collections ?? [], finance: parsed.finance ?? { payables: [] } } as Store;
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(normalized));
     return normalized;
   } catch {
     const freshStore = structuredClone(emptyStore);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(freshStore));
+    window.localStorage.setItem(getStorageKey(), JSON.stringify(freshStore));
     return freshStore;
   }
 }
 
 function writeStore(store: Store) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  window.localStorage.setItem(getStorageKey(), JSON.stringify(store));
   window.dispatchEvent(new Event("fernanda-store-updated"));
   if (remotePersistence) {
     const snapshot = structuredClone(store);
@@ -169,11 +176,36 @@ function writeStore(store: Store) {
 
 export function replaceStore(store: Store) {
   privateProductMeta = {};
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  const current = readStore();
+  const normalized = { ...store, finance: store.finance ?? current.finance ?? { payables: [] } };
+  window.localStorage.setItem(getStorageKey(), JSON.stringify(normalized));
   window.dispatchEvent(new Event("fernanda-store-updated"));
 }
 
 export function getStore() { return readStore(); }
+
+export function seedFinancePreview() {
+  if (typeof window === "undefined" || getStorageKey() !== PREVIEW_STORAGE_KEY) return;
+  const previewStore: Store = {
+    users: [
+      { id: "preview-manager", name: "Marina Fortes", email: "preview@fernandafortes.com", phone: "", role: "gestora", password: "", active: true, commissionRate: 0, createdAt: "2026-08-01T12:00:00.000Z" },
+      { id: "preview-reseller-1", name: "Ana Luiza", email: "ana@preview.local", phone: "", role: "revendedora", password: "", active: true, commissionRate: 20, createdAt: "2026-08-01T12:00:00.000Z" },
+      { id: "preview-reseller-2", name: "Beatriz Costa", email: "bia@preview.local", phone: "", role: "revendedora", password: "", active: true, commissionRate: 18, createdAt: "2026-08-01T12:00:00.000Z" },
+    ],
+    customers: [],
+    products: [
+      { id: "preview-gold", name: "Colar Aurora", category: "Colares", price: 189, stock: 8, status: "available", accent: "#D7B46A", showInStore: true },
+      { id: "preview-ring", name: "Anel Essência", category: "Anéis", price: 129, stock: 12, status: "available", accent: "#B48B5A", showInStore: true },
+    ],
+    orders: [
+      { id: "preview-order-1", origin: "reseller", entryType: "detailed", resellerId: "preview-reseller-1", customerName: "Clara Mendes", items: [{ productId: "preview-gold", productName: "Colar Aurora", unitPrice: 189, quantity: 1, subtotal: 189 }], total: 189, commission: 37.8, commissionRate: 20, status: "delivered", paymentMethod: "pix", paymentStatus: "paid", saleDate: "2026-08-25T12:00:00.000Z", createdAt: "2026-08-25T12:00:00.000Z", updatedAt: "2026-08-25T12:00:00.000Z", history: [] },
+      { id: "preview-order-2", origin: "reseller", entryType: "detailed", resellerId: "preview-reseller-2", customerName: "Juliana Prado", items: [{ productId: "preview-ring", productName: "Anel Essência", unitPrice: 129, quantity: 1, subtotal: 129 }], total: 129, commission: 23.22, commissionRate: 18, status: "approved", paymentMethod: "pending", paymentStatus: "pending", saleDate: "2026-08-26T12:00:00.000Z", createdAt: "2026-08-26T12:00:00.000Z", updatedAt: "2026-08-26T12:00:00.000Z", history: [] },
+    ],
+    notifications: [], collections: [], finance: { payables: [{ id: "preview-payable-1", description: "Reposição de embalagens", category: "Operação", supplier: "Ateliê da Marca", amount: 240, dueDate: "2026-08-30", paidAmount: 0, status: "open", createdAt: "2026-08-26T12:00:00.000Z", settlements: [] }] }, sessionUserId: "preview-manager",
+  };
+  window.localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(previewStore));
+}
+
 export function getProductsForRole(_role: Role) { return readStore().products.map(product => ({ ...product })); }
 export function getProductCost(productId: string) { readStore(); return privateProductMeta[productId]?.costBase; }
 export function setProductCost(productId: string, costBase?: number) {
@@ -263,6 +295,21 @@ export function login(identifier: string, password: string, role: Role) {
 }
 export function logout() { privateProductMeta = {}; const store = readStore(); store.sessionUserId = null; writeStore(store); }
 export function updateStore(mutator: (store: Store) => void) { const store = readStore(); mutator(store); writeStore(store); return store; }
+export function createPayable(input: { description: string; category: string; supplier?: string; amount: number; dueDate: string }) {
+  const store = readStore();
+  if (!input.description.trim() || !input.category.trim() || !input.dueDate || !Number.isFinite(input.amount) || input.amount <= 0) throw new Error("Informe descrição, categoria, valor e vencimento.");
+  const payable: FinancialPayable = { id: crypto.randomUUID(), description: input.description.trim(), category: input.category.trim(), supplier: input.supplier?.trim() || undefined, amount: Number(input.amount.toFixed(2)), dueDate: input.dueDate, paidAmount: 0, status: "open", createdAt: new Date().toISOString(), settlements: [] };
+  store.finance.payables.unshift(payable); writeStore(store); return payable;
+}
+export function settlePayable(payableId: string, input: { amount: number; method: PaymentMethod; note?: string }) {
+  const store = readStore(); const payable = store.finance.payables.find(item => item.id === payableId);
+  if (!payable) throw new Error("Compromisso não encontrado.");
+  const remaining = Number((payable.amount - payable.paidAmount).toFixed(2));
+  if (!Number.isFinite(input.amount) || input.amount <= 0 || input.amount > remaining) throw new Error("O pagamento deve ser maior que zero e não pode exceder o saldo.");
+  payable.paidAmount = Number((payable.paidAmount + input.amount).toFixed(2)); payable.status = payable.paidAmount >= payable.amount ? "paid" : "partial";
+  payable.settlements.push({ id: crypto.randomUUID(), amount: Number(input.amount.toFixed(2)), date: new Date().toISOString(), method: input.method, note: input.note?.trim() || undefined });
+  writeStore(store); return payable;
+}
 
 export function createCustomer(input: { name: string; phone: string; email?: string }) {
   const store = readStore();

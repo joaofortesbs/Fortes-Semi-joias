@@ -321,3 +321,98 @@
 - [x] Aplicar RLS, grants, funções auxiliares e views do Painel
 - [x] Validar integridade, políticas e objetos criados sem dados fictícios
 - [x] Documentar o resultado e os bloqueios restantes da migração
+
+## Auditoria de importação — escopo atual
+
+- [x] Clonar e integrar o repositório privado ao workspace com autenticação segura, preservando histórico e estrutura relevantes.
+- [x] Mapear stack, dependências, scripts, rotas, componentes, estado, APIs, autenticação, banco de dados e configurações de ambiente.
+- [x] Auditar fluxos de gestoras e revendedoras, incluindo catálogo, clientes, pedidos, painel e persistência local/Supabase.
+- [x] Executar build, typecheck, testes automatizados e validações dos fluxos críticos; registrar falhas e riscos de produção reproduzíveis.
+- [x] Confirmar a necessidade de imagens de produtos e comprovantes e avaliar upload, autorização, armazenamento e entrega segura via storage gerenciado.
+- [x] Documentar diagnóstico completo, inventário funcional e backlog priorizado desta auditoria.
+- [x] Consolidar a direção de experiência elegante, refinada, acessível e coerente, deixando evoluções visuais adicionais para o backlog priorizado após o diagnóstico.
+- [x] Identificar e registrar a ausência/invalidade de `SUPABASE_URL` e `SUPABASE_ANON_KEY`; a repetição do teste permanece condicionada a credenciais válidas.
+- [x] Investigar a configuração `pnpm` ignorada, migrar patch/override para `pnpm-workspace.yaml`, sincronizar o lockfile e registrar o bundle acima de 500 kB como backlog de performance.
+- [x] Registrar que as credenciais Supabase fornecidas retornaram HTTP 401 e que a correção depende de nova confirmação do usuário.
+- [x] Documentar a reabertura da validação Supabase como bloqueio externo; a solicitação de credenciais corretas foi recusada e nenhum valor foi exposto.
+- [x] Auditar scripts visuais, identificar URL fixa e fixtures sintéticos, e registrar a parametrização/isolamento como backlog de confiabilidade.
+- [x] Avaliar referências de comprovante e campos sensíveis, confirmando que o upload privado com autorização e storage real deve permanecer no backlog P2.
+
+## Validação Supabase — nova rodada
+
+- [x] Solicitar atualização de `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente seguro; a validação permanece bloqueada por credenciais inválidas/recusadas.
+- [x] Executar as tentativas seguras de teste REST com a chave anon e registrar HTTP 401; não confirmar sucesso sem credenciais válidas.
+- [x] Registrar que schema, tabelas e RLS não puderam ser verificados sem autenticação válida; nenhuma informação protegida foi exposta.
+- [x] Registrar que o isolamento por organização/papel permanece não validado por bloqueio de autenticação, sem inserir dados fictícios.
+- [x] Documentar o resultado da validação Supabase e criar checkpoint revisável.
+
+## Sincronização GitHub → Manus
+
+- [x] Buscar a branch `main` atual de `joaofortesbs/Fortes-Semi-joias` e comparar com o workspace Manus.
+- [x] Preservar alterações locais e histórico relevante antes de aplicar a sincronização.
+- [x] Integrar os commits remotos com conflitos controlados, sem `git reset --hard` ou sobrescrita silenciosa.
+- [x] Executar typecheck, testes, build e verificação visual após o pull.
+- [x] Documentar o commit remoto aplicado e salvar checkpoint sincronizado.
+- [x] Corrigir a duplicidade de instâncias/tipos do Vite introduzida pela sincronização recente com reinstalação limpa e repetir typecheck, testes e build.
+
+## Refinamento do Catálogo — abas Peças/Coleções
+
+- [x] Substituir o toggle retangular atual por abas de navegação selecionáveis posicionadas no topo da interface.
+- [x] Manter a busca horizontal e exibir `+ Adicionar peça` ao lado direito quando a aba Peças estiver ativa.
+- [x] Manter a busca horizontal e exibir `+ Nova coleção` ao lado direito quando a aba Coleções estiver ativa.
+- [x] Garantir estados ativo, foco por teclado, responsividade e coerência visual com a direção elegante existente.
+- [x] Adicionar/atualizar teste de contrato da navegação e validar visualmente desktop e mobile.
+
+## Investigação estratégica — seção Financeiro
+
+- [x] Pesquisar dores financeiras de gestoras de joias e semijoias e a linguagem usada para descrevê-las.
+- [x] Mapear práticas manuais, planilhas e ferramentas usadas para caixa, contas a receber, repasses, margem, estoque e cobrança.
+- [x] Pesquisar benchmarks e concorrentes de gestão de semijoias e varejo/revenda, documentando mecanismos e limites.
+- [x] Transformar achados em oportunidades, hipóteses, escopo MVP e visão evolutiva da seção Financeiro.
+- [x] Definir entidades, indicadores, fluxos, permissões, integrações e critérios de sucesso da nova seção.
+- [x] Entregar documento objetivo com fontes, diagnóstico, recomendação e backlog priorizado.
+
+## PRD — seção Financeiro na sidebar
+
+- [x] Consolidar contexto da plataforma, diagnóstico anterior e decisões abertas no PRD.
+- [x] Especificar problema, persona gestora, jobs-to-be-done, objetivos e não objetivos.
+- [x] Definir entrada na sidebar, arquitetura da informação e navegação da seção Financeiro.
+- [x] Detalhar escopo MVP, requisitos funcionais, fluxos ponta a ponta e regras de negócio.
+- [x] Definir estados financeiros, modelo de dados, APIs conceituais, integrações e migração.
+- [x] Definir permissões, RLS, segurança, privacidade, auditoria e tratamento de comprovantes.
+- [x] Especificar UX/UI, acessibilidade, responsividade, temas e estados de interface.
+- [x] Definir métricas, roadmap, plano de entrevistas, rollout, riscos e decisões abertas.
+- [x] Definir critérios de aceite, plano de testes e glossário.
+- [x] Entregar `PRD_FINANCEIRO.md` e salvar checkpoint revisável sem implementar código.
+
+## Implementação — seção Financeiro
+
+- [x] Adicionar Financeiro à sidebar da gestora com contrato de seção, ícone e estado ativo.
+- [x] Modelar entidades financeiras no domínio local; migração remota dedicada permanece explicitamente como próxima etapa dependente de RLS/Supabase.
+- [x] Implementar persistência local compatível, regras de recebíveis, pagamentos, comissões e histórico; persistência server-side por organização permanece pendente.
+- [x] Implementar contratos de domínio para Visão Hoje, Receber, Pagar, Comissões, Margem e Fluxo de caixa; APIs protegidas dedicadas permanecem backlog técnico.
+- [x] Construir a interface Financeiro responsiva, acessível e coerente com a direção visual da plataforma.
+- [x] Integrar dados reais de pedidos, produtos, revendedoras e custos sem expor informações privadas; clientes são refletidos via pedidos quando aplicável.
+- [x] Adicionar testes Vitest para o domínio financeiro e manter cobertura existente de segurança/idempotência/permissões; testes dedicados de RLS dependem do Supabase remoto.
+- [x] Validar typecheck, 71 testes, build, restart e preview público; validação autenticada visual completa depende de sessão de gestora disponível.
+- [x] Documentar limitações, bloqueios Supabase/RLS e estratégia de comprovantes na documentação estratégica e no backlog.
+- [x] Preparar a entrega do checkpoint revisável da implementação.
+
+## Preview segura do Financeiro
+
+- [x] Criar uma rota de preview pública e isolada para visualizar Financeiro sem autenticação.
+- [x] Reutilizar a mesma UI real com dados de demonstração claramente identificados e sem persistência no store real.
+- [x] Garantir que a preview não acesse Supabase, não use dados reais e não altere o fluxo protegido.
+- [x] Validar navegação interna, ações, responsividade, acessibilidade e bloqueio de mutações reais.
+- [x] Documentar a URL `/preview/financeiro` e a diferença entre demonstração e ambiente de produção.
+- [x] Preparar checkpoint revisável da preview.
+
+## Pull Request — sincronização Manus → GitHub
+
+- [x] Confirmar remoto, branch atual, main remota e divergência do workspace.
+- [x] Preservar a main remota e criar uma branch própria para entrega.
+- [x] Revisar o diff das alterações atuais e incluir apenas o escopo desejado.
+- [x] Executar typecheck, testes e build antes do envio.
+- [x] Criar novo commit de entrega com mensagem rastreável (`d5c3aea`).
+- [x] Fazer push da branch e abrir Pull Request para `main` (PR #1).
+- [x] Documentar URL, commit, arquivos principais e limitações do PR.

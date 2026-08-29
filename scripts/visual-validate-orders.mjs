@@ -4,19 +4,30 @@ async function assertVisible(locator, label) { if (await locator.count() === 0) 
 async function assertAbsent(locator, label) { if (await locator.count() !== 0) throw new Error(`Elemento deveria estar ausente: ${label}`); }
 async function assertSelected(locator, label) { const value = await locator.inputValue(); if (!value) throw new Error(`Nenhuma seleção encontrada: ${label}`); }
 
-const previewUrl = "https://3000-iidx99rxqb3of3lvcxn3i-39bdd11e.us4.manus.computer/";
+const previewUrl = process.env.PREVIEW_URL ?? "http://localhost:3000/";
 const manager = { id: "visual-order-manager", name: "Gestora de validação", email: "visual-orders@example.test", phone: "", role: "gestora", password: "", active: true, commissionRate: 0, createdAt: new Date().toISOString() };
 const reseller = { id: "visual-order-reseller", name: "Ana Lima", email: "", phone: "", city: "Recife", role: "revendedora", password: "", active: true, commissionRate: 20, inviteStatus: "accepted", createdAt: new Date().toISOString() };
 const now = new Date().toISOString();
 const store = { users: [manager, reseller], customers: [], products: [{ id: "visual-order-product", name: "Colar Aura", category: "Colares", price: 120, stock: 3, status: "available", accent: "#c8a86b", showInStore: true, createdAt: now, updatedAt: now }], orders: [{ id: "visual-order-record", entryType: "detailed", origin: "direct", resellerId: undefined, customerId: undefined, customerName: undefined, customerContact: undefined, items: [{ productId: "visual-order-product", productName: "Colar Aura", quantity: 1, unitPrice: 120, subtotal: 120 }], total: 120, commission: 0, status: "delivered", paymentMethod: "pix", paymentStatus: "paid", saleDate: now, createdAt: now, updatedAt: now, history: [{ status: "delivered", changedAt: now, changedBy: manager.id }] }], notifications: [], sessionUserId: manager.id };
 const storageKey = "fernanda-fortes-saas-store-v2-real-data";
+async function installVisualApi(page) {
+  await page.route("**/api/auth/session", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ user: manager }) }));
+  await page.route("**/api/store", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(store) }));
+}
 const browser = await chromium.launch({ headless: true });
 const screenshots = "/home/ubuntu/screenshots";
 
 const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const desktopPage = await desktopContext.newPage();
 await desktopPage.addInitScript(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: storageKey, value: store });
+await installVisualApi(desktopPage);
 await desktopPage.goto(previewUrl, { waitUntil: "networkidle" });
+await desktopPage.getByRole("button", { name: "Catálogo" }).click();
+await assertVisible(desktopPage.getByRole("tab", { name: /Peças/ }), "aba Peças desktop");
+await assertVisible(desktopPage.getByRole("button", { name: "Adicionar peça" }), "ação Adicionar peça desktop");
+await desktopPage.getByRole("tab", { name: /Coleções/ }).click();
+await assertVisible(desktopPage.getByRole("button", { name: "Nova coleção" }), "ação Nova coleção desktop");
+await desktopPage.getByRole("tab", { name: /Peças/ }).click();
 await desktopPage.getByRole("button", { name: "Pedidos" }).click();
 await desktopPage.screenshot({ path: `${screenshots}/orders-desktop-list.png`, fullPage: true });
 await desktopPage.getByRole("button", { name: "Pedidos" }).click();
@@ -44,7 +55,15 @@ await desktopContext.close();
 const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const mobilePage = await mobileContext.newPage();
 await mobilePage.addInitScript(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: storageKey, value: store });
+await installVisualApi(mobilePage);
 await mobilePage.goto(previewUrl, { waitUntil: "networkidle" });
+await mobilePage.getByRole("button", { name: "Abrir menu" }).click();
+await mobilePage.getByRole("button", { name: "Catálogo" }).click();
+await assertVisible(mobilePage.getByRole("tab", { name: /Peças/ }), "aba Peças mobile");
+await assertVisible(mobilePage.getByRole("button", { name: "Adicionar peça" }), "ação Adicionar peça mobile");
+await mobilePage.getByRole("tab", { name: /Coleções/ }).click();
+await assertVisible(mobilePage.getByRole("button", { name: "Nova coleção" }), "ação Nova coleção mobile");
+await mobilePage.getByRole("tab", { name: /Peças/ }).click();
 await mobilePage.getByRole("button", { name: "Abrir menu" }).click();
 await mobilePage.getByRole("button", { name: "Revendedoras" }).click();
 await mobilePage.getByRole("button", { name: "Novo pedido" }).click();

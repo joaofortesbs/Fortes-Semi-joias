@@ -8,6 +8,7 @@ import AuthPage from "./pages/AuthPage";
 import AppShell, { type Section } from "./components/AppShell";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import ResellerDashboard from "./pages/ResellerDashboard";
+import FinancePreviewPage from "./pages/FinancePreviewPage";
 import {
   configureRemotePersistence,
   getSessionUser,
@@ -78,4 +79,7 @@ function App() {
   return <ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><AppShell user={user} section={section} setSection={setSection} onLogout={() => { void logoutRemoteAccount().finally(() => { configureRemotePersistence(null); logout(); setUser(null); setShowAuth(false); }); }}><>{syncError && <div className="mx-auto mb-4 max-w-6xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{syncError}<button className="ml-3 font-semibold underline" onClick={() => setSyncError(null)}>Fechar</button></div>}{user.role === "gestora" ? <ManagerDashboard user={user} section={section} /> : <ResellerDashboard user={user} section={section} />}</></AppShell></TooltipProvider></ThemeProvider>;
 }
 
-export default function RootApp() { return <ErrorBoundary><App /></ErrorBoundary>; }
+export default function RootApp() {
+  const isFinancePreview = typeof window !== "undefined" && window.location.pathname === "/preview/financeiro";
+  return <ErrorBoundary>{isFinancePreview ? <FinancePreviewPage /> : <App />}</ErrorBoundary>;
+}
