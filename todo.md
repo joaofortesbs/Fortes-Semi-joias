@@ -409,10 +409,10 @@
 
 ## Pull Request — sincronização Manus → GitHub
 
-- [ ] Confirmar remoto, branch atual, main remota e divergência do workspace.
-- [ ] Preservar a main remota e criar uma branch própria para entrega.
-- [ ] Revisar o diff das alterações atuais e incluir apenas o escopo desejado.
-- [ ] Executar typecheck, testes e build antes do envio.
-- [ ] Criar novo commit de entrega com mensagem rastreável.
-- [ ] Fazer push da branch e abrir Pull Request para `main`.
-- [ ] Documentar URL, commit, arquivos principais e limitações do PR.
+- [x] Confirmar remoto, branch atual, main remota e divergência do workspace.
+- [x] Preservar a main remota e criar uma branch própria para entrega.
+- [x] Revisar o diff das alterações atuais e incluir apenas o escopo desejado.
+- [x] Executar typecheck, testes e build antes do envio.
+- [x] Criar novo commit de entrega com mensagem rastreável (`d5c3aea`).
+- [x] Fazer push da branch e abrir Pull Request para `main` (PR #1).
+- [x] Documentar URL, commit, arquivos principais e limitações do PR.
